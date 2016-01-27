@@ -1,0 +1,5 @@
+HyPerCarlo is a Monte Carlo lattice simulator for Hybrid Perovskites. This was inspired by Jarvist Frost's StarryNight code (ref needed), however I wanted to write my own lattice simulator with nice classes etc. The main reason I wanted to do this was to make a nice, clean code that I could use for a wide variety of models extending beyond hybrid perovskites. I.e anything with a Hamiltonian. I also want to eventually let users specify their own lattice Hamiltonians, however in initial stages these will be hard-coded in. 
+
+Andrew P. McMahon, Theory and Simulation of Materials, Imperial College London.
+
+Code was begun on 25/1/2016
