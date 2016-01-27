@@ -6,8 +6,10 @@
 
 class Lattice {
 	public:
-		//Initialise a lattice 
+		//Initialise a lattice/lattice constructor 
 		Lattice (int,int,int);
+		//Lattice destructor
+		~Lattice();
 		//Grabs volume of lattice/crystal.
         int Vol(void);
 		/*Define dipole struct. NB: next 2 lines
@@ -26,7 +28,7 @@ class Lattice {
 	
 		NB: I'll prob make this private later ...?*/
 		void initialise_lattice(std::string);
-	
+		void output_lattice(std::string);
 	private:        
 		//sizes of crystal
 		int Nx,Ny,Nz;

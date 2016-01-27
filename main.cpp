@@ -9,22 +9,29 @@ Began: 25/1/2016
 #include "Lattice.h"
 #include<vector>
 
-using namespace std;
+//using namespace std;
 
 int main() {
 //Set size of lattice
-Lattice lattice=Lattice(10,10,10);
+int Nx=5,Ny=5,Nz=5;
+Lattice lattice=Lattice(Nx,Ny,Nz);
 //check it's volume
 int vol=lattice.Vol();
 /*this initialisation step will eventually happen internally maybe? 
 Maybe not I quite like it this way ....*/
-lattice.initialise_lattice("PARA");
+lattice.initialise_lattice("FERRO");
+lattice.output_lattice("InitialState.dat");
 
-/*Tests for accessinv volume and lattice data*/
-//cout << "Volume of lattice: " << vol << endl;
-//Lattice::dipole p1 = lattice.get_xyz(1,2,3);
-//cout << "L[1][2][3]: " << p1.x << endl;
-
-
+/*for(int i=0;i<Nx;i++) {
+        for(int j=0;j<Ny;j++) {
+            for(int k=0;k<Nz;k++) {				
+                std::cout << lattice.get_xyz(i,j,k).x << " "
+               	<< lattice.get_xyz(i,j,k).y << " "
+				<< lattice.get_xyz(i,j,k).z << std::endl;
+                //std::cout << lattice[i+j*Ny+k*Nz*Ny].z << " ";
+                }
+            }
+        }
+*/    
 return 0;
 }
