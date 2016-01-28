@@ -7,6 +7,11 @@ I.e anything with a lattice-Hamiltonian. I also want to eventually let
 users specify their own lattice Hamiltonians in input files, however 
 in initial stages these will be hard-coded in. 
 
+
+Note: I want this model to treat longer range interactions in a more 
+rigorous manner so I will need to use an algorithm along the lines of
+http://csml.northwestern.edu/resources/Preprints/mclr.pdf.
+
 Andrew P. McMahon, 
 Theory and Simulation of Materials, 
 Imperial College London.

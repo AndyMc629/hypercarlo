@@ -2,6 +2,19 @@
 
 Author: Andrew P. McMahon, Imperial College London.
 Began: 25/1/2016
+
+I imagine the workflow of the program:
+
+Initialise a lattice 
+|--> Choose model Hamiltonian? Should I create a "Model" class containing the Hamiltonian and Monte Carlo steps 
+     or do I just make this a method in the lattice class?
+V
+Run equilibration on lattice --> 
+|
+V
+Run simulation on lattice, gather statistics --> Calculate averages --> Output averages.
+
+
 */
 
 #include<cstdlib>

@@ -17,22 +17,25 @@ class Lattice {
 		be able to access these, I think.
 		i.e means I can change some vectors ad hoc.*/
 		struct dipole {float x; float y; float z;};
+		//the lattice object is a vector of dipole structs.
 		std::vector<dipole> lattice;	
 		//get the dipole at xyz.
-		dipole get_xyz(int,int,int);
+		dipole get_dipole(int,int,int);
 		/*initialisation state dependent on string.
 		string can have values:
 		FERRO = ferro arrangement 1,0,0 or something
 		PARA = paraelectric , rand() ...
 		PREV = read in previous state as initial state
-	
 		NB: I'll prob make this private later ...?*/
 		void initialise_lattice(std::string);
+		/*Output to file supplied by string*/
 		void output_lattice(std::string);
+		void run();
 	private:        
 		//sizes of crystal
 		int Nx,Ny,Nz;
 		//void initialise_lattice(std::string);
+		void MC_Step(int,int,int);
 };
 
 #endif
