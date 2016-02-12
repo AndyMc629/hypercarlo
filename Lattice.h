@@ -12,7 +12,7 @@ class Lattice {
 		//Lattice destructor
 		~Lattice();
 		//Grabs volume of lattice/crystal.
-	        int vol(void);
+	    int vol(void);
 		/*Define dipole struct. NB: next 2 lines
 		were in private before but I want user to
 		be able to access these, I think.
