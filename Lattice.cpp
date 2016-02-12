@@ -1,12 +1,15 @@
 #include "Lattice.h"
 #include<fstream>
+#include<random>
+
 //Lattice constructor
 Lattice::Lattice(int a, int b, int c) : Nx(a),Ny(b),Nz(c),lattice(a*b*c) 
-{}    
+{} 
+
 //Lattice destructor
 Lattice::~Lattice() {}
 //Lattice member func, get volume
-int Lattice::Vol(void) { 
+int Lattice::vol(void) { 
 	return Nx*Ny*Nz;
 }
 //Lattice member func, return value at x,y,z coord
@@ -53,8 +56,8 @@ for(int i=0;i<Nx;i++) {
         }
 output.close();
 }
-//Lattice member func, runs simulation on lattice
-void Lattice::run() {
+//Lattice member func, equilibrates lattice
+void Lattice::equilibrate(int EquilSteps) {
 /*For equilibriate steps/dipole, choose a site at random and
 perform MC step on it*/
 /*PSEUDOCODE*/
@@ -62,7 +65,16 @@ perform MC step on it*/
 //(x,y,z)=rand;
 //MC_Step(x,y,z);
 //}
-
+int i,j,k;
+for(int n=0;n<EquilSteps;n++) {
+	std::cout << mt_rand() << "\n";  
+	//gen random lattice coord's        
+        //i=rand();j=rand();k=rand();   
+	//mc_step(i,j,k);
+      }
+}
+//Lattice member func, runs simulation/statistics run on lattice
+void Lattice::run(int RunSteps) {
 /*For run steps/dipole, choose a site at random and perform
 MC step on it*/
 /*PSEUDOCODE*/
@@ -72,7 +84,7 @@ MC step on it*/
 //}
 }
 //Lattice member func, performs MC step on x,y,z coordinate dipole
-void Lattice::MC_Step(int x, int y, int z) {
+void Lattice::mc_step(int x, int y, int z) {
 /*Recover energy variable, should make that private?
 Then propose random new dipole, calc change in energy for that new config
 relative to old config, accept or reject new dipole.*/

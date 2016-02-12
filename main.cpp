@@ -29,11 +29,12 @@ int main() {
 int Nx=5,Ny=5,Nz=5;
 Lattice lattice=Lattice(Nx,Ny,Nz);
 //check it's volume
-int vol=lattice.Vol();
+int volume=lattice.vol();
 /*this initialisation step will eventually happen internally maybe? 
 Maybe not I quite like it this way ....*/
 lattice.initialise_lattice("FERRO");
 lattice.output_lattice("InitialState.dat");
+lattice.equilibrate(100);
 
 /*for(int i=0;i<Nx;i++) {
         for(int j=0;j<Ny;j++) {

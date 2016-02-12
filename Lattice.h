@@ -3,6 +3,7 @@
 #include<vector>
 #include<string>
 #include<iostream>
+#include<random>
 
 class Lattice {
 	public:
@@ -11,7 +12,7 @@ class Lattice {
 		//Lattice destructor
 		~Lattice();
 		//Grabs volume of lattice/crystal.
-        int Vol(void);
+	        int vol(void);
 		/*Define dipole struct. NB: next 2 lines
 		were in private before but I want user to
 		be able to access these, I think.
@@ -30,12 +31,17 @@ class Lattice {
 		void initialise_lattice(std::string);
 		/*Output to file supplied by string*/
 		void output_lattice(std::string);
-		void run();
+		/*Equilibrate lattice for int steps/dipole*/
+		void equilibrate(int);
+		/*Run sim gather statistics for int steps/dipole*/
+		void run(int);
 	private:        
 		//sizes of crystal
 		int Nx,Ny,Nz;
 		//void initialise_lattice(std::string);
-		void MC_Step(int,int,int);
+		void mc_step(int,int,int);
+		//init a random number for use later ...
+		std::mt19937 rng(std::random_device{}());	
 };
 
 #endif
