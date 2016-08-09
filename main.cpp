@@ -29,7 +29,6 @@ int main() {
 //Set size of lattice
 int Nx=5,Ny=5,Nz=5;
 std::mt19937 rng{std::chrono::high_resolution_clock::now().time_since_epoch().count()};
-
 Lattice lattice=Lattice(Nx,Ny,Nz,rng);
 //check it's volume
 int vol=lattice.Vol();
@@ -40,8 +39,11 @@ lattice.output_lattice("InitialState.dat");
 
 float answer = lattice.dot_dipole(lattice.get_dipole(1,1,1),lattice.get_dipole(1,2,1));
 std::cout << answer << std::endl;
+
 for(int i=0;i<10;i++){
+
 lattice.MC_Step(1,1,1);
+
 }
 
 /*for(int i=0;i<Nx;i++) {
