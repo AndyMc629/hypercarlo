@@ -1,4 +1,3 @@
-//change
 /* Monte Carlo lattice model simulator, this will be generic and 3D. All that will need changed/updated in future will be Hamiltonians!
 
 Author: Andrew P. McMahon, Imperial College London.
