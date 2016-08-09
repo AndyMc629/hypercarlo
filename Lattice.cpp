@@ -77,8 +77,8 @@ void Lattice::MC_Step(int x, int y, int z) {
 Then propose random new dipole, calc change in energy for that new config
 relative to old config, accept or reject new dipole.*/
 //Note: see paper http://csml.northwestern.edu/resources/Preprints/mclr.pdf
-//float E_beforeFlip=site_Hamiltonian(x,y,z);
-
+float E_beforeFlip=site_Hamiltonian(x,y,z);
+float theta_new=rand(0,pi),phi_new=rand(0,2*pi);
 
 }
 float Lattice::site_Hamiltonian(int x, int y, int z) {
