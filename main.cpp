@@ -32,30 +32,20 @@ std::mt19937 rng{std::chrono::high_resolution_clock::now().time_since_epoch().co
 Lattice lattice=Lattice(Nx,Ny,Nz,rng);
 //check it's volume
 int vol=lattice.Vol();
-/*this initialisation step will eventually happen internally maybe? 
-Maybe not I quite like it this way ....*/
+
+//Initialise the lattice to FERRO or PARA
 lattice.initialise_lattice("FERRO");
+//output initial lattice.
 lattice.output_lattice("InitialState.dat");
 
-float answer = lattice.dot_dipole(lattice.get_dipole(1,1,1),lattice.get_dipole(1,2,1));
-std::cout << answer << std::endl;
+//equilibrate lattice at temp T.
+float T=400; //K
+int equilSteps=5000;
+lattice.Equilibrate(equilSteps,T);
 
-for(int i=0;i<10;i++){
+//output equilibrated lattice.
+std::string equilFile="EquilibratedState_" + std::to_string(equilSteps)+"steps";
+lattice.output_lattice(equilFile);
 
-lattice.MC_Step(1,1,1);
-
-}
-
-/*for(int i=0;i<Nx;i++) {
-        for(int j=0;j<Ny;j++) {
-            for(int k=0;k<Nz;k++) {				
-                std::cout << lattice.get_xyz(i,j,k).x << " "
-               	<< lattice.get_xyz(i,j,k).y << " "
-				<< lattice.get_xyz(i,j,k).z << std::endl;
-                //std::cout << lattice[i+j*Ny+k*Nz*Ny].z << " ";
-                }
-            }
-        }
-*/    
 return 0;
 }

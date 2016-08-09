@@ -41,6 +41,17 @@ void Lattice::initialise_lattice(std::string s) {
 	else if(s.compare("PARA")==0) {
 	//initialise stuff goes here ....
 	std::cout << "PARA CHOSEN" << std::endl;	
+	
+	for(int i=0;i<Nx;i++) {
+          for(int j=0;j<Ny;j++) {
+              for(int k=0;k<Nz;k++) {
+                  lattice[i+j*Ny+k*Nz*Ny].x = randomNumber(-1,1);
+                  lattice[i+j*Ny+k*Nz*Ny].y = randomNumber(-1,1);
+                  lattice[i+j*Ny+k*Nz*Ny].z = randomNumber(-1,1);
+                  }
+              }
+          }
+
 	}
 	else if(s.compare("PREV")==0) {//previous output
 	//initialise stuff goes here ....
@@ -62,11 +73,13 @@ for(int i=0;i<Nx;i++) {
         }
 output.close();
 }
-void Lattice::Equilibrate() {
-
+void Lattice::Equilibrate(int steps, float T) {
+for (int i=0;i<=steps;i++) {
+	MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),int(randomNumber(0,Nz)),T); 
+}
 }
 //Lattice member func, runs statistics run on lattice
-void Lattice::Run() {
+void Lattice::Run(int steps) {
 /*For equilibriate steps/dipole, choose a site at random and
 perform MC step on it*/
 /*PSEUDOCODE*/
@@ -84,7 +97,7 @@ MC step on it*/
 //}
 }
 //Lattice member func, performs MC step on x,y,z coordinate dipole
-void Lattice::MC_Step(int x, int y, int z) {
+void Lattice::MC_Step(int x, int y, int z, float T) {
 /*Recover energy variable, should make that private?
 Then propose random new dipole, calc change in energy for that new config
 relative to old config, accept or reject new dipole.*/
@@ -95,7 +108,7 @@ float E_beforeFlip=site_Hamiltonian(x,y,z);
 dipole p_old = lattice[x+y*Nx+z*Nx*Ny];
 
 //generate new trial dipole direction.
-float theta = randomNumber(0,pi), phi=randomNumber(0,pi); 
+float theta = randomNumber(0,pi), phi=randomNumber(0,2*pi); 
 dipole p_new;
 p_new.x=sin(theta)*cos(phi); //spherical polars.
 p_new.y=sin(theta)*sin(phi); //assume r=1 in each case
@@ -104,20 +117,21 @@ p_new.z=cos(theta);
 float norm = sqrt(p_new.x*p_new.x+p_new.y*p_new.y+p_new.z*p_new.z);
 p_new.x=p_new.x/norm;p_new.y=p_new.y/norm;p_new.z=p_new.z/norm;
 //output for testing
-std::cout << "old (px,py,pz)= " << p_old.x << " " << p_old.y << " " << p_old.z << std::endl;
-std::cout << "new (px,py,pz)= " << p_new.x << " " << p_new.y << " " << p_new.z << std::endl;
+//std::cout << "old (px,py,pz)= " << p_old.x << " " << p_old.y << " " << p_old.z << std::endl;
+//std::cout << "new (px,py,pz)= " << p_new.x << " " << p_new.y << " " << p_new.z << std::endl;
 
 //update lattice point as new dipole and calc new energy
 lattice[x+y*Nx+z*Nx*Ny]=p_new;
-std::cout << "lattice (px,py,pz)= " << lattice[x+y*Nx+z*Nx*Ny].x << " " << lattice[x+y*Nx+z*Nx*Ny].y << " " << lattice[x+y*Nx+z*Nx*Ny].z << std::endl;
+//std::cout << "lattice (px,py,pz)= " << lattice[x+y*Nx+z*Nx*Ny].x << " " << lattice[x+y*Nx+z*Nx*Ny].y << " " << lattice[x+y*Nx+z*Nx*Ny].z << std::endl;
 float E_afterFlip=site_Hamiltonian(x,y,z);
 
-std::cout<< "Ediff = " << E_afterFlip-E_beforeFlip << std::endl;
+//std::cout<< "Ediff = " << E_afterFlip-E_beforeFlip << std::endl;
 float dE=E_afterFlip-E_beforeFlip;
 
 //If energy change is positive need Boltzmann factor vs rand number
 if (dE>0) {
-	float p_boltz=exp( - dE );
+	float beta=300/(0.025*T);
+	float p_boltz=exp( -beta*dE );
 	if (p_boltz < randomNumber(0,1)) { //i.e if boltz loses, reject change.
 		lattice[x+y*Nx+z*Nx*Ny]=p_old;
 	}
@@ -133,7 +147,7 @@ float Lattice::site_Hamiltonian(int x, int y, int z) {
 	//must calc with three seperate loops so that we don't get
 	//next to nearest neighbours from (x+1,y+1,k+1)
 	float E;
-	float J=1.0;
+	float J=0.025;
 	for (int i=-1;i<=1;i+=2) {
 	E += -J*dot_dipole(get_dipole(x,y,z),get_dipole(x+i,y,z));
 	}
