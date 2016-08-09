@@ -3,11 +3,11 @@
 #include<vector>
 #include<string>
 #include<iostream>
-
+#include<random>
 class Lattice {
 	public:
 		//Initialise a lattice/lattice constructor 
-		Lattice (int,int,int);
+		Lattice (int,int,int,std::mt19937&);
 		//Lattice destructor
 		~Lattice();
 		//Grabs volume of lattice/crystal.
@@ -33,11 +33,14 @@ class Lattice {
 		void run();
 		float site_Hamiltonian(int, int, int);
 		float dot_dipole(Lattice::dipole p1, Lattice::dipole p2);
+		float randomNumber(float, float);
+		std::mt19937& m_rng;
+		//void initialise_lattice(std::string);
+		void MC_Step(int,int,int);
+
 	private:        
 		//sizes of crystal
 		int Nx,Ny,Nz;
-		//void initialise_lattice(std::string);
-		void MC_Step(int,int,int);
-};
+		};
 
 #endif

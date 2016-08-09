@@ -1,7 +1,11 @@
 #include "Lattice.h"
 #include<fstream>
+#include<random> //for MT algorithm.
+
+std::mt19937 m_rng; //forward declaring m_rng? does this make it work?
+
 //Lattice constructor
-Lattice::Lattice(int a, int b, int c) : Nx(a),Ny(b),Nz(c),lattice(a*b*c) 
+Lattice::Lattice(int a, int b, int c, std::mt19937& rng) : Nx(a),Ny(b),Nz(c),m_rng(rng),lattice(a*b*c) 
 {}    
 //Lattice destructor
 Lattice::~Lattice() {}
@@ -78,8 +82,9 @@ Then propose random new dipole, calc change in energy for that new config
 relative to old config, accept or reject new dipole.*/
 //Note: see paper http://csml.northwestern.edu/resources/Preprints/mclr.pdf
 float E_beforeFlip=site_Hamiltonian(x,y,z);
-float theta_new=rand(0,pi),phi_new=rand(0,2*pi);
-
+//float theta_new=rand(0,pi),phi_new=rand(0,2*pi);
+float rand = randomNumber(1,3); 
+std::cout << rand << std::endl;
 }
 float Lattice::site_Hamiltonian(int x, int y, int z) {
 //calculate the energy of a site with coord's x,y,z
@@ -103,10 +108,11 @@ float Lattice::dot_dipole(Lattice::dipole p1, Lattice::dipole p2){
 float dot=p1.x*p2.x+p1.y*p2.y+p1.z*p2.z;
 return dot;
 }
-
-
-
-
+//create random number between min and max using mersenneTwister.
+float Lattice::randomNumber(float min, float max){
+        std::uniform_real_distribution<float> uniformDistribution(min, max);
+        return uniformDistribution(m_rng);
+    }
 
 
 
