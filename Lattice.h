@@ -31,6 +31,8 @@ class Lattice {
 		/*Output to file supplied by string*/
 		void output_lattice(std::string);
 		void run();
+		float site_Hamiltonian(int, int, int);
+		float dot_dipole(Lattice::dipole p1, Lattice::dipole p2);
 	private:        
 		//sizes of crystal
 		int Nx,Ny,Nz;

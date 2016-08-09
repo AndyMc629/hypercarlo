@@ -35,6 +35,8 @@ Maybe not I quite like it this way ....*/
 lattice.initialise_lattice("FERRO");
 lattice.output_lattice("InitialState.dat");
 
+float answer = lattice.site_Hamiltonian(1,1,1);
+std::cout << answer << std::endl;
 /*for(int i=0;i<Nx;i++) {
         for(int j=0;j<Ny;j++) {
             for(int k=0;k<Nz;k++) {				

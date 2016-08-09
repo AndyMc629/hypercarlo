@@ -77,9 +77,32 @@ void Lattice::MC_Step(int x, int y, int z) {
 Then propose random new dipole, calc change in energy for that new config
 relative to old config, accept or reject new dipole.*/
 //Note: see paper http://csml.northwestern.edu/resources/Preprints/mclr.pdf
+//float E_beforeFlip=site_Hamiltonian(x,y,z);
+
 
 }
-
+float Lattice::site_Hamiltonian(int x, int y, int z) {
+//calculate the energy of a site with coord's x,y,z
+	//ISING
+	//must calc with three seperate loops so that we don't get
+	//next to nearest neighbours from (x+1,y+1,k+1)
+	float E;
+	float J=1.0;
+	for (int i=-1;i<=1;i+=2) {
+	E += -J*dot_dipole(get_dipole(x,y,z),get_dipole(x+i,y,z));
+	}
+	for (int j=-1;j<=1;j+=2) {
+	E += -J*dot_dipole(get_dipole(x,y,z),get_dipole(x,y+j,z));		
+	}
+	for (int k=-1;k<=1;k+=2) {
+	E += -J*dot_dipole(get_dipole(x,y,z),get_dipole(x,y,z+k));
+	}
+return E;
+}
+float Lattice::dot_dipole(Lattice::dipole p1, Lattice::dipole p2){
+float dot=p1.x*p2.x+p1.y*p2.y+p1.z*p2.z;
+return dot;
+}
 
 
 
