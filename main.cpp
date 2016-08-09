@@ -28,9 +28,12 @@ Run simulation on lattice, gather statistics --> Calculate averages --> Output a
 int main() {
 //Set size of lattice
 int Nx=5,Ny=5,Nz=5;
+//Seed a Mersenne Twister random number generator.
 std::mt19937 rng{std::chrono::high_resolution_clock::now().time_since_epoch().count()};
+//Initialise a lattice object.
 Lattice lattice=Lattice(Nx,Ny,Nz,rng);
-//check it's volume
+
+//Check it's volume
 int vol=lattice.Vol();
 
 //Initialise the lattice to FERRO or PARA
