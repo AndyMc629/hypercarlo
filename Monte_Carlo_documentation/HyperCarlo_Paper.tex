@@ -66,6 +66,7 @@ The program follows quite a simple structure, containing only one class and a fe
 	\begin{itemize}
 	\item {\tt FERRO} - Initialise to a ferroelectric state where all spins/dipoles are aligned with components $\vec{p}=(0,0,1)$.
 	\item {\tt PARA} - Initialise the lattice to a paraelectric states where all spins/dipoles are aligned randomly.
+	\item {\tt PREV} - Read in a previous state to use as initial state. This must be given in the current directory as a comma separated file with line format $x,y,z,p_x,p_y,p_z$, where the Cartesian coordinates and components of each spin/dipole are listed. The file must have the name {\tt PrevState.dat}. 
 	\end{itemize}
 \item {\tt void output\_lattice(std::string datafile)} - Output the current state of the lattice to a file named 'datafile' and save it in the local directory.
 \vspace{5pt}
@@ -102,7 +103,7 @@ to produce the new Hamiltonian
 \end{equation}
 which for a suitable choice of $\vec{D}$ can be used to model Chiral Helimagnetic Systems such as MnSi.
 
-If the user wishes to simulate a lattice of electrostatically interacting dipoles, as may be relevant for ferroelectric materials they can select a serious of dipole based terms including the dipole-dipole electrostatic interaction for site $i$
+If the user wishes to simulate a lattice of electrostatically interacting dipoles, as may be relevant for ferroelectric materials, they can select a serious of dipole based terms including the dipole-dipole electrostatic interaction for site $i$
 
 \begin{equation}
 \mathcal{H}_i = \sum_j \left( \frac{ \vec{p}_i\cdot\vec{p}_j-3 (\vec{p}_i\cdot\hat{r}_{ij}) (\vec{p}_j\cdot\hat{r}_{ij}))}{ r_{ij}^3} \right)
@@ -116,10 +117,19 @@ There is also the possibility to study relaxor ferroelectrics by selecting a Ham
 \end{equation}
 where the $J_{ij}$ is a random interaction energy drawn from a Gaussian distribution ~\cite{Lao}
 \begin{equation}
-\mathcal{P}(J_{ij} \propto \left( -\frac{J_{ij}^2}{2\sigma_{J}^2} \right)
+\mathcal{P}(J_{ij}) \propto \left( -\frac{J_{ij}^2}{2\sigma_{J}^2} \right)
 \end{equation}
 where $\sigma_J$ is the standard deviation of the distribution of $J_{ij}$.
 
+Glassy systems can be studied with similar models such as the Hamiltonian
+\begin{equation}
+\mathcal{H} = -J\sum_{\langle i,j\rangle} \vec{p}_i \cdot \vec{p}_j - \sum_i\vec{e_i}\cdot\vec{p}_i
+\end{equation}
+where $\vec{e}_i$ is a random local electric field on the lattice, drawn again from a Gaussian distribution of values 
+\begin{equation}
+\mathcal{P}(e_i) \propto \left( -\frac{e_{i}^2}{2\sigma_{e}^2} \right)
+\end{equation}
+and distributed on the lattice at the beginning of the simulation. The value $\sigma_{e}$ is of course the standard deviation of the distribution of random fields, $e_i$. 
 \section{Simulation Workflow}
 The basic outline of how the program should be used in order to calculate relevant quantities in an MC simulation is shown in Figure~\ref{workflow}.
 
@@ -135,7 +145,7 @@ The basic outline of how the program should be used in order to calculate releva
     \begin{figure*}
 \begin{tikzpicture}[node distance = 2cm, auto]
     % Place nodes
-    \node [block] (init) {Select initial state (i.e {\tt FERRO} or {\tt PREV}) and select Hamiltonian.};
+    \node [block] (init) {Select initial state (i.e {\tt FERRO}, {\tt PARA} or {\tt PREV}) and select Hamiltonian.};
     \node [cloud, left of=init] (user) {User};
     \node [block, below of=init] (equil) {Equilibrate model};
     \node [block, below of=equil] (run) {Run model.};
