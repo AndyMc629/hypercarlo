@@ -1,0 +1,204 @@
+\documentclass[aps,prb,twocolumn,showpacs,superscriptaddress,floatfix]{revtex4-1}
+\usepackage{amssymb,amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{bm}
+%\usepackage{multirow}
+\usepackage{dcolumn}
+\usepackage{tabularx}
+%\usepackage{tabulary}
+\usepackage{longtable}
+\usepackage[dvipsnames,usenames]{color}
+\usepackage{enumitem}  %for roman numerals in enumeration etc .... APMCM 29/3/2016.
+%\usepackage{subcaption} %subfigures %NOTE:THIS CAUSES BUGS IN HERE (APS JOURNAL TEMPLATE)
+%\usepackage{minipage}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows}
+\usepackage{pgfplots} %plot directly in latex
+
+%========================================================================= 
+\newlength{\dbarheight}
+\newcommand{\tens}[1]{%
+    \settoheight{\dbarheight}{\ensuremath{\overline{#1}}}%
+    \addtolength{\dbarheight}{-0.03ex}%
+    \overline{\vphantom{\rule{1pt}{\dbarheight}}%
+    \smash{\overline{#1}}}}
+    
+    \newenvironment{myitemize} %to stop annoying spaces in itemize.
+{ \begin{itemize}
+    \setlength{\itemsep}{5pt}
+    \setlength{\parskip}{5pt}
+    \setlength{\parsep}{5pt}  }
+{ \end{itemize}                  } 
+% ========================================================================= 
+\begin{document}
+%========================================================================= 
+\title{{\tt HyPerCarlo} -  A Monte Carlo code for use in Hybrid Perovskite Research}
+
+\author{Andrew P. McMahon} 
+\affiliation{Department of Physics, Imperial College London, London
+  SW7 2AZ, UK and Centre for Doctoral Training in Theory and Simulation of Materials, Imperial College London, London
+  SW7 2AZ, UK}
+
+\date{\today}
+%========================================================================= 
+
+%========================================================================= 
+
+
+
+\begin{abstract} 
+Here I introduce a lattice based Monte Carlo code for use in simulating condensed matter physics systems. The key points of the program's design and functionality are introduced as its usage. The program is designed to be extremely flexible in order to maximise its application, and it allows the use to choose both the terms present in the Hamiltonian and the update algorithm used. Finally, the program is used to simulate the lattice dynamics of interacting dipoles in order to understand proposed glassy dynamics in hybrid-inorganic perovskite materials.
+\end{abstract}
+\pacs{}
+%========================================================================= 
+\maketitle
+%=========================================================================
+ \section{Introduction}
+Monte Carlo (MC) simulation is one of the key techniques of computational physics and has been applied to countless problems, from quantum chromodynamics to the simulation of foams and polymers. Despite this widespread use of Monte Carlo, there are only a couple of programs available which allow flexibility in both choice of energy terms and algorithmic procedure, so that it is often more time efficient for a researcher to write their own MC code. This code seeks to alleviate the problem slightly by grouping several similar techniques together, so that several problems within condensed matter physics can be solved using one, flexible code.
+
+\section{Program structure}
+The program follows quite a simple structure, containing only one class and a few methods within that class. the key difference between this and some other MC codes is that the program has been designed with flexibility in mind. The main class is the {\tt Lattice} class, which has several methods which we will list and describe briefly:
+
+\begin{itemize}
+\item {\tt int Vol()} - This returns the volume of the lattice.
+\item {\tt void initialise\_lattice(std::string key)} - This initialises the lattice to a predetermined configuration defined by the keyword string 'key'. Current keywords include 
+	\begin{itemize}
+	\item {\tt FERRO} - Initialise to a ferroelectric state where all spins/dipoles are aligned with components $\vec{p}=(0,0,1)$.
+	\item {\tt PARA} - Initialise the lattice to a paraelectric states where all spins/dipoles are aligned randomly.
+	\end{itemize}
+\item {\tt void output\_lattice(std::string datafile)} - Output the current state of the lattice to a file named 'datafile' and save it in the local directory.
+\vspace{5pt}
+\item {\tt void Equilibrate(int steps, float T)} - Equilibrate the lattice by performing {\tt steps} number of MC steps (total, not per site) at temperature {\tt T} in Kelvin.
+\item {\tt void Run(int ensemble\_size, int n\_ensembles float T)} - Perform a statistics gathering run (after equilibration) whereby {\tt n\_ensembles} of  size {\tt ensemble\_size} steps are used in order to calculate thermodynamic quantities.
+\item {\tt void MC\_Step(int x, int y, int z, float T)} -  Perform a (Metropolis) Monte Carlo step on dipole located at lattice coordinate $(x,y,z)$ at temperature {\tt T}. Currently only the Metropolis update algorithm is employed but there will soon be new functionality allowing the update to occur through the use of a cluster algorithm.
+\item {\tt float site\_Hamiltonian(int x, int y, int z)} - Calculates the local energy of a spin/dipole located at lattice coordinate $(x,y,z)$. Currently only a Heisenberg model Hamiltonian
+\begin{equation}
+\mathcal{H} = -J\sum_{\langle i,j\rangle} \vec{S}_i \cdot \vec{S}_j
+\end{equation}
+is coded in. The exchange energy $J$ is currently set at a default value of $J=0.025$. This will be updated to allow other energy terms which a user can mix and match to create their own Hamiltonians (the code will eventually be designed so that the user can input their own Hamiltonian function relatively easily).
+\item {\tt float dot\_dipole(Lattice::dipole p1, Lattice::dipole p2)} - This functions takes two lattice dipole objects and returns their dot product.
+\item {\tt float randomNumber(float min, float max)} - Returns a random number found from a Mersenne Twister algorithm which is seeded in the main program, in the range from {\tt min} to {\tt max}.
+\end{itemize}
+
+The lattice class also has the following data structures associated with it, which some of the above functions act on
+\begin{itemize}
+\item {\tt struct dipole \{float x; float y; float z\}} - A struct which describes each spin/dipole by listing its three components $(p_x,p_y,p_z)$ (here only labelled with {\tt float x,y,z}). A {\tt Lattice} class object is a {\tt  std::<vector>} of dipole objects.
+\item {\tt Nx, Ny, Nz} - These are the dimensions of the lattice, set in the main program. They are private members of the {\tt Lattice} class.
+\end{itemize}
+
+\section{Lattice Hamiltonians}
+Several Hamiltonian terms are programmed into {\tt HyPerCarlo}, and it is easy to combine Hamiltonian terms to make new model Hamiltonians (it is left to the user's discretion as to whether or not these new Hamiltonians will make sense however). As an example one could combine the Heisenberg Hamiltonian
+\begin{equation}
+\mathcal{H} = -J\sum_{\langle i,j\rangle} \vec{S}_i \cdot \vec{S}_j +  \mu_0\sum_i\vec{B}\cdot\vec{S}_i
+\end{equation}
+and the Dzyaloshinskii-Moriya Hamiltonian term 
+\begin{equation}
+\sum_{\langle i,j \rangle} \vec{D}\cdot\vec{S}_i \times \vec{S}_j
+\end{equation}
+to produce the new Hamiltonian
+\begin{equation}
+\mathcal{H} = -J\sum_{\langle i,j\rangle} \vec{S}_i \cdot \vec{S}_j + \sum_{\langle i,j \rangle} \vec{D}\cdot (\vec{S}_i \times \vec{S}_j) - \mu_0\sum_i\vec{B}\cdot\vec{S}_i
+\end{equation}
+which for a suitable choice of $\vec{D}$ can be used to model Chiral Helimagnetic Systems such as MnSi.
+
+If the user wishes to simulate a lattice of electrostatically interacting dipoles, as may be relevant for ferroelectric materials they can select a serious of dipole based terms including the dipole-dipole electrostatic interaction for site $i$
+
+\begin{equation}
+\mathcal{H}_i = \sum_j \left( \frac{ \vec{p}_i\cdot\vec{p}_j-3 (\vec{p}_i\cdot\hat{r}_{ij}) (\vec{p}_j\cdot\hat{r}_{ij}))}{ r_{ij}^3} \right)
+\end{equation}
+
+In this case an Ewald summation is used in order to efficiently calculate this sum.
+
+There is also the possibility to study relaxor ferroelectrics by selecting a Hamiltonian of the form
+\begin{equation}
+\mathcal{H} = -\sum_{\langle i,j\rangle} J_{ij} \vec{p}_i \cdot \vec{p}_j - \sum_i\vec{E}\cdot\vec{p}_i
+\end{equation}
+where the $J_{ij}$ is a random interaction energy drawn from a Gaussian distribution ~\cite{Lao}
+\begin{equation}
+\mathcal{P}(J_{ij} \propto \left( -\frac{J_{ij}^2}{2\sigma_{J}^2} \right)
+\end{equation}
+where $\sigma_J$ is the standard deviation of the distribution of $J_{ij}$.
+
+\section{Simulation Workflow}
+The basic outline of how the program should be used in order to calculate relevant quantities in an MC simulation is shown in Figure~\ref{workflow}.
+
+% Define block styles
+\tikzstyle{decision} = [diamond, draw, fill=blue!20, 
+    text width=7em, text badly centered, node distance=3cm, inner sep=0pt]
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=15em, text centered, rounded corners, minimum height=4em]
+\tikzstyle{line} = [draw, -latex']
+\tikzstyle{cloud} = [draw, ellipse,fill=red!20, node distance=6cm,
+    minimum height=4em, minimum width=7em]
+    
+    \begin{figure*}
+\begin{tikzpicture}[node distance = 2cm, auto]
+    % Place nodes
+    \node [block] (init) {Select initial state (i.e {\tt FERRO} or {\tt PREV}) and select Hamiltonian.};
+    \node [cloud, left of=init] (user) {User};
+    \node [block, below of=init] (equil) {Equilibrate model};
+    \node [block, below of=equil] (run) {Run model.};
+    \node [block, below of=run, node distance=4cm,minimum width=4cm] (update) {Update estimators \begin{equation} 
+    \langle \mathcal{O} \rangle \rightarrow \langle \mathcal{O} \rangle + \frac{\mathcal{O}}{{\tt ensemble\_size}}  
+     \end{equation}};
+    \node [decision, left of=run,node distance=6cm] (converged) {Has simulation converged?};
+    \node [block, below of=converged, node distance=4cm] (stop) {Output final lattice and output final data.};
+    \node [decision, right of=equil, node distance=6cm] (previous) {Has user selected {\tt PREV}?};
+    % Draw edges
+    \path [line] (init) -| (previous);
+    \path [line] (equil) -- (run);
+    \path [line] (run) -- (converged);
+    \path [line] (converged) --node {NO} (user);
+    \path [line, dashed] (run) -- node{Every {\tt ensemble\_size} steps} (update);
+    \path [line] (converged) -- node {YES}(stop);
+    \path [line,dashed] (user) -- (init);
+    \path [line] (previous) -- node{NO} (equil);
+     \path [line] (previous) |- node{YES} (run);
+\end{tikzpicture}
+\caption{Basic workflow of a Monte Carlo simulation performed using {\tt HyPerCarlo}.}
+\label{workflow}
+\end{figure*}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{thebibliography}{53}%
+
+\bibitem{Lao}
+Laosiritaworn, Yongyut
+Kanchiang, Kanokwan
+Yimnirun, Rattikorn
+Guo, Ruyan
+Bhalla, Amar S,
+Ferroelectrics, , 382:28?35, 2009
+
+\bibitem{nonCentro}
+X. Zhu, N. Mercier, A. Riou, P. Blanchard, P. Fr\'{e}re, 
+Chem. Commun., 2160-2161 (2002).
+
+\bibitem{VASP1}
+ G. Kresse and J. Haffner, Phys. Rev. B {\bf 47}, 558 (1993).
+
+\bibitem{VASP2}
+ G. Kresse and J. Furthm\"{u}ller, Computational Materials
+Science {\bf 6}, 15 (1996).
+
+%\bibitem{PBEsol}
+%J. P. Perdew, A. Ruzsinszky, G. I. Csonka, O. A. Vydrov,
+%G. E. Scuseria, L. A. Constantin, X. Zhou, and K. Burke,
+%Phys. Rev. Lett. {\bf 100}, 136406 (2008).
+
+%\bibitem{PAW}
+%P. E. Bl\"{o}chl, Physical Review B {\bf 50}, 17953 (1994).
+
+\bibitem{Amplimodes1}
+ D. Orobengoa, C. Capillas, M. I. Aroyo, and J. M. Perez-
+Mato, J. App. Cryst. {\bf 42}, 820 (2009)
+
+\bibitem{Amplimodes2}
+ J. Perez-Mato, D. Orobengoa, and M. Aroyo, Acta Cryst. A {\bf 66}, 558 (2010).
+
+
+\end{thebibliography}
+
+
+\end{document}
+
