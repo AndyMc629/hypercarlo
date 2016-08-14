@@ -37,7 +37,7 @@ Lattice lattice=Lattice(Nx,Ny,Nz,rng);
 int vol=lattice.Vol();
 
 //Initialise the lattice to FERRO or PARA
-lattice.initialise_lattice("FERRO");
+lattice.initialise_lattice("PARA_ISING");
 //output initial lattice.
 lattice.output_lattice("InitialState.dat");
 

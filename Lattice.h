@@ -38,10 +38,12 @@ class Lattice {
 		std::mt19937& m_rng;
 		//void initialise_lattice(std::string);
 		void MC_Step(int,int,int,float);
-
 	private:        
 		//sizes of crystal
 		int Nx,Ny,Nz;
-		};
+        //energy, polarisation/magnetisation.
+       // float E;
+        //float P;
+    };
 
 #endif
