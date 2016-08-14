@@ -132,7 +132,7 @@ where $\vec{e}_i$ is a random local electric field on the lattice, drawn again f
 and distributed on the lattice at the beginning of the simulation. The value $\sigma_{e}$ is of course the standard deviation of the distribution of random fields, $e_i$. 
 \section{Simulation Workflow}
 The basic outline of how the program should be used in order to calculate relevant quantities in an MC simulation is shown in Figure~\ref{workflow}.
-
+\clearpage
 % Define block styles
 \tikzstyle{decision} = [diamond, draw, fill=blue!20, 
     text width=7em, text badly centered, node distance=3cm, inner sep=0pt]
@@ -143,15 +143,16 @@ The basic outline of how the program should be used in order to calculate releva
     minimum height=4em, minimum width=7em]
     
     \begin{figure*}
+    \begin{centering}
 \begin{tikzpicture}[node distance = 2cm, auto]
     % Place nodes
     \node [block] (init) {Select initial state (i.e {\tt FERRO}, {\tt PARA} or {\tt PREV}) and select Hamiltonian.};
     \node [cloud, left of=init] (user) {User};
     \node [block, below of=init] (equil) {Equilibrate model};
     \node [block, below of=equil] (run) {Run model.};
-    \node [block, below of=run, node distance=4cm,minimum width=4cm] (update) {Update estimators \begin{equation} 
-    \langle \mathcal{O} \rangle \rightarrow \langle \mathcal{O} \rangle + \frac{\mathcal{O}}{{\tt ensemble\_size}}  
-     \end{equation}};
+    \node [block, below of=run, node distance=4cm,minimum width=4cm] (update) {Update estimators \begin{equation*} 
+    \langle \mathcal{O} \rangle \rightarrow \langle \mathcal{O} \rangle + \frac{ \sum_{i=1}^{{\tt ensemble\_size}}\mathcal{O}}{{\tt ensemble\_size}}  
+     \end{equation*}};
     \node [decision, left of=run,node distance=6cm] (converged) {Has simulation converged?};
     \node [block, below of=converged, node distance=4cm] (stop) {Output final lattice and output final data.};
     \node [decision, right of=equil, node distance=6cm] (previous) {Has user selected {\tt PREV}?};
@@ -168,6 +169,7 @@ The basic outline of how the program should be used in order to calculate releva
 \end{tikzpicture}
 \caption{Basic workflow of a Monte Carlo simulation performed using {\tt HyPerCarlo}.}
 \label{workflow}
+\end{centering}
 \end{figure*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{thebibliography}{53}%
