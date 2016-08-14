@@ -21,30 +21,34 @@ Run simulation on lattice, gather statistics --> Calculate averages --> Output a
 #include<iostream>
 #include "Lattice.h"
 #include<vector>
-
+#include<random>
+#include<chrono>
 //using namespace std;
 
 int main() {
 //Set size of lattice
 int Nx=5,Ny=5,Nz=5;
-Lattice lattice=Lattice(Nx,Ny,Nz);
-//check it's volume
+//Seed a Mersenne Twister random number generator.
+std::mt19937 rng{std::chrono::high_resolution_clock::now().time_since_epoch().count()};
+//Initialise a lattice object.
+Lattice lattice=Lattice(Nx,Ny,Nz,rng);
+
+//Check it's volume
 int vol=lattice.Vol();
-/*this initialisation step will eventually happen internally maybe? 
-Maybe not I quite like it this way ....*/
+
+//Initialise the lattice to FERRO or PARA
 lattice.initialise_lattice("FERRO");
+//output initial lattice.
 lattice.output_lattice("InitialState.dat");
 
-/*for(int i=0;i<Nx;i++) {
-        for(int j=0;j<Ny;j++) {
-            for(int k=0;k<Nz;k++) {				
-                std::cout << lattice.get_xyz(i,j,k).x << " "
-               	<< lattice.get_xyz(i,j,k).y << " "
-				<< lattice.get_xyz(i,j,k).z << std::endl;
-                //std::cout << lattice[i+j*Ny+k*Nz*Ny].z << " ";
-                }
-            }
-        }
-*/    
+//equilibrate lattice at temp T.
+float T=400; //K
+int equilSteps=5000;
+lattice.Equilibrate(equilSteps,T);
+
+//output equilibrated lattice.
+std::string equilFile="EquilibratedState_" + std::to_string(equilSteps)+"steps";
+lattice.output_lattice(equilFile);
+
 return 0;
 }
