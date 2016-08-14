@@ -108,14 +108,14 @@ float E_beforeFlip=site_Hamiltonian(x,y,z);
 dipole p_old = lattice[x+y*Nx+z*Nx*Ny];
 
 //generate new trial dipole direction.
-float theta = randomNumber(0,pi), phi=randomNumber(0,2*pi); 
 dipole p_new;
-p_new.x=sin(theta)*cos(phi); //spherical polars.
-p_new.y=sin(theta)*sin(phi); //assume r=1 in each case
-p_new.z=cos(theta);
-//normalise to 1
-float norm = sqrt(p_new.x*p_new.x+p_new.y*p_new.y+p_new.z*p_new.z);
-p_new.x=p_new.x/norm;p_new.y=p_new.y/norm;p_new.z=p_new.z/norm;
+p_new.x=0; //Ising so only z component.
+p_new.y=0; //Ising so only z component.
+p_new.z= -p_old.z; //Ising so can only flip.
+//normalise to 1 - no need in Ising.
+//float norm = sqrt(p_new.x*p_new.x+p_new.y*p_new.y+p_new.z*p_new.z);
+//p_new.x=p_new.x/norm;p_new.y=p_new.y/norm;p_new.z=p_new.z/norm;
+
 //output for testing
 //std::cout << "old (px,py,pz)= " << p_old.x << " " << p_old.y << " " << p_old.z << std::endl;
 //std::cout << "new (px,py,pz)= " << p_new.x << " " << p_new.y << " " << p_new.z << std::endl;

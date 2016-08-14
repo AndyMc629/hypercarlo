@@ -42,7 +42,7 @@ lattice.initialise_lattice("FERRO");
 lattice.output_lattice("InitialState.dat");
 
 //equilibrate lattice at temp T.
-float T=400; //K
+float T=800; //K
 int equilSteps=5000;
 lattice.Equilibrate(equilSteps,T);
 
