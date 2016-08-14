@@ -10,7 +10,7 @@ std::mt19937 m_rng; //forward declaring m_rng? does this make it work?
 
 
 //Lattice constructor
-Lattice::Lattice(int a, int b, int c, std::mt19937& rng) : Nx(a),Ny(b),Nz(c),m_rng(rng),lattice(a*b*c) 
+Lattice::Lattice(int a, int b, int c, std::mt19937& rng) : Nx(a),Ny(b),Nz(c),m_rng(rng),lattice(a*b*c)//,E(0.0),P(0.0) 
 {}    
 //Lattice destructor
 Lattice::~Lattice() {}

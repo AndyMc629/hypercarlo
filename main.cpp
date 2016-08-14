@@ -29,7 +29,7 @@ int main() {
 //Set size of lattice
 int Nx=5,Ny=5,Nz=5;
 //Seed a Mersenne Twister random number generator.
-std::mt19937 rng{std::chrono::high_resolution_clock::now().time_since_epoch().count()};
+std::mt19937 rng(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 //Initialise a lattice object.
 Lattice lattice=Lattice(Nx,Ny,Nz,rng);
 
@@ -42,8 +42,8 @@ lattice.initialise_lattice("FERRO");
 lattice.output_lattice("InitialState.dat");
 
 //equilibrate lattice at temp T.
-float T=400; //K
-int equilSteps=5000;
+float T=800; //K
+int equilSteps=50000;
 lattice.Equilibrate(equilSteps,T);
 
 //output equilibrated lattice.
