@@ -53,7 +53,29 @@ void Lattice::initialise_lattice(std::string s) {
           }
 
 	}
-	else if(s.compare("PREV")==0) {//previous output
+	
+    else if(s.compare("PARA_ISING")==0) {
+	//initialise stuff goes here ....
+	std::cout << "PARA ISING CHOSEN" << std::endl;	
+	float random=randomNumber(0,1);
+	for(int i=0;i<Nx;i++) {
+          for(int j=0;j<Ny;j++) {
+              for(int k=0;k<Nz;k++) {
+                  lattice[i+j*Ny+k*Nz*Ny].x = 0; 
+                  lattice[i+j*Ny+k*Nz*Ny].y = 0; 
+                  if(random>=0.5){
+                  lattice[i+j*Ny+k*Nz*Ny].z = 1;
+                  }
+                  else{
+                  lattice[i+j*Ny+k*Nz*Ny].z = -1;
+                  }    
+                  }
+              }
+          }
+
+	}
+
+    else if(s.compare("PREV")==0) {//previous output
 	//initialise stuff goes here ....
 	std::cout << "PREV CHOSEN" << std::endl;
 	}
