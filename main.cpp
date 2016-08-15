@@ -33,8 +33,6 @@ std::mt19937 rng{std::chrono::high_resolution_clock::now().time_since_epoch().co
 //Initialise a lattice object.
 Lattice lattice=Lattice(Nx,Ny,Nz,rng);
 
-//Check it's volume
-int vol=lattice.Vol();
 
 //Initialise the lattice to FERRO or PARA
 lattice.initialise_lattice("PARA_ISING");
@@ -43,11 +41,11 @@ lattice.output_lattice("InitialState.dat");
 
 //equilibrate lattice at temp T.
 float T=800; //K
-int equilSteps=3;//50000;
+int equilSteps=50000;
 lattice.Equilibrate(equilSteps,T);
 
 //output equilibrated lattice.
-std::string equilFile="EquilibratedState_" + std::to_string(equilSteps)+"steps";
+std::string equilFile="Lattice_equil_" + std::to_string(equilSteps)+"_steps.dat";
 lattice.output_lattice(equilFile);
 
 return 0;

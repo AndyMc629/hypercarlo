@@ -19,8 +19,11 @@ int Lattice::Vol(void) {
 	return Nx*Ny*Nz;
 }
 //Lattice member func, return value at x,y,z coord
+//Note that for PBC have to find mod(Ni-1) for each
+//coordinate (minus one
+//because c++ arrays start at zero).
 Lattice::dipole Lattice::get_dipole(int x,int y,int z) {
-	return lattice[x+y*Nx+z*Ny*Nx];
+	return lattice[(x%(Nx-1))+(y%(Ny-1))*Nx+(z%(Nz-1))*Ny*Nx];
 }
 //Lattice member func, initialise lattice dep on string
 void Lattice::initialise_lattice(std::string s) {
@@ -191,7 +194,9 @@ float Lattice::site_Hamiltonian(int x, int y, int z) {
 	E += -J*dot_dipole(get_dipole(x,y,z),get_dipole(x,y,z+k));
 	}
 if(E>10e2) {
-std::cout << "In site H func:\n"; 
+std::cout << "\n \n \n ********************************\n"
+			<<" WARNING! High energy on a site, most likely an error. More info below:" 
+			<<" \n In site H func: \n"; 
 for (int i=-1;i<=1;i+=2) {
      E += -J*dot_dipole(get_dipole(x,y,z),get_dipole(x+i,y,z));
      std::cout << "dot1= "<< -J*dot_dipole(get_dipole(x,y,z),get_dipole(x+i,y,z)) << "\n";
@@ -217,13 +222,15 @@ float E_site=0.0;
                  	E_site=site_Hamiltonian(i,j,k); 
 					E += E_site;
 				if(E_site>10e2) {
-                  std::cout << "E>100 = " << site_Hamiltonian(i,j,k) <<" at site ("<< i << ", "<< j << ", "<< k <<")" << std::endl;
+				std::cout << "\n \n \n ********************************\n" 
+		             <<" WARNING! High energy on a site, most likely an error. Lattice config will be outputted\n"
+						<<"More info below:\n";
+					std::cout << "E>100 = " << site_Hamiltonian(i,j,k) <<" at site ("<< i << ", "<< j << ", "<< k <<")" << std::endl;
 					output_lattice("ProblemLattice.dat");
 					}
 				}
               }
           }      
-std::cout << "Energy in total energy func = " << E << std::endl;
 return E;
 }
 
