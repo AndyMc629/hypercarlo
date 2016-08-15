@@ -179,7 +179,7 @@ float Lattice::site_Hamiltonian(int x, int y, int z) {
 	//ISING
 	//must calc with three seperate loops so that we don't get
 	//next to nearest neighbours from (x+1,y+1,k+1)
-	float E;
+	float E=0.0;
 	float J=0.025;
 	for (int i=-1;i<=1;i+=2) {
 	E += -J*dot_dipole(get_dipole(x,y,z),get_dipole(x+i,y,z));
@@ -190,6 +190,22 @@ float Lattice::site_Hamiltonian(int x, int y, int z) {
 	for (int k=-1;k<=1;k+=2) {
 	E += -J*dot_dipole(get_dipole(x,y,z),get_dipole(x,y,z+k));
 	}
+if(E>10e2) {
+std::cout << "In site H func:\n"; 
+for (int i=-1;i<=1;i+=2) {
+     E += -J*dot_dipole(get_dipole(x,y,z),get_dipole(x+i,y,z));
+     std::cout << "dot1= "<< -J*dot_dipole(get_dipole(x,y,z),get_dipole(x+i,y,z)) << "\n";
+		}
+     for (int j=-1;j<=1;j+=2) {
+     E += -J*dot_dipole(get_dipole(x,y,z),get_dipole(x,y+j,z));
+	std::cout << "dot2 = "<< -J*dot_dipole(get_dipole(x,y,z),get_dipole(x,y+j,z)) << "\n";
+     }
+     for (int k=-1;k<=1;k+=2) {
+     E += -J*dot_dipole(get_dipole(x,y,z),get_dipole(x,y,z+k));
+	std::cout << "dot3 = "<< -J*dot_dipole(get_dipole(x,y,z),get_dipole(x,y,z+k)) << "\n";
+     }
+
+}
 return E;
 }
 float Lattice::total_Energy(){
