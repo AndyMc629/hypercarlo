@@ -99,17 +99,19 @@ for(int i=0;i<Nx;i++) {
         }
 output.close();
 }
-void Lattice::Equilibrate(int steps, float T) {
+void Lattice::Equilibrate(int stepsPerSite, float T) {
 //Open data file to store equilibration stats.
 std::ofstream output;
 output.open("EquilibrationStats.dat");
 output << "#Equilibrated stats.\n"
-		<< "#nstep/site E_tot/site \n";   
-for (int i=0;i<=steps;i++) {	
+		<< "#kT/J nstep/site E_tot/site P_tot/site\n";   
+for (int i=0;i<=(stepsPerSite*Vol());i++) {	
 	MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),int(randomNumber(0,Nz)),T); 
-	if(((10*i)%steps)==0){ //every 10% output something
-		output << (float)i/(Nx*Ny*Nz) << " " << total_Energy()/(Nx*Ny*Nz) << "\n"; 
-std::cout << "total energy = " << total_Energy() << std::endl;
+	if(((10*i)%(stepsPerSite*Vol()))==0){ //every 10% output something
+		output << (0.025*T)/(J*(float)300) << " " <<  (float)i/(Vol()) << " " 
+		<< total_Energy()/(Vol()) << " " << total_Polarisation()/(Vol()) << "\n"; 
+		std::cout << ((float)i/stepsPerSite) << " steps/site: E/vol = " 
+		<< total_Energy()/Vol() << ", P/vol = " << total_Polarisation()/Vol() << std::endl;
 	}	
 }
 output.close();
@@ -183,7 +185,7 @@ float Lattice::site_Hamiltonian(int x, int y, int z) {
 	//must calc with three seperate loops so that we don't get
 	//next to nearest neighbours from (x+1,y+1,k+1)
 	float E=0.0;
-	float J=0.025;
+	//float J=0.025;
 	for (int i=-1;i<=1;i+=2) {
 	E += -J*dot_dipole(get_dipole(x,y,z),get_dipole(x+i,y,z));
 	}
@@ -233,8 +235,24 @@ float E_site=0.0;
           }      
 return E;
 }
-
-
+//Calc. total polarisation of lattice.
+//Choice of words not sacrosanct, this also
+//refers to the magnetisation for spin simulations.
+float Lattice::total_Polarisation(){
+//vector to store net pol.
+dipole P_net;P_net.x=0.0;P_net.y=0.0;P_net.z=0.0;
+	for(int i=0;i<Nx;i++) {
+    	      for(int j=0;j<Ny;j++) {
+        	      for(int k=0;k<Nz;k++) {
+					P_net.x += lattice[i+j*Nx+k*Nx*Ny].x;
+					P_net.y += lattice[i+j*Nx+k*Nx*Ny].y;
+					P_net.z += lattice[i+j*Nx+k*Nx*Ny].z;	
+				}
+			}
+		}
+float P_net_mag=sqrt(dot_dipole(P_net,P_net));
+return P_net_mag;
+}
 float Lattice::dot_dipole(Lattice::dipole p1, Lattice::dipole p2){
 float dot=p1.x*p2.x+p1.y*p2.y+p1.z*p2.z;
 return dot;

@@ -40,12 +40,13 @@ lattice.initialise_lattice("PARA_ISING");
 lattice.output_lattice("InitialState.dat");
 
 //equilibrate lattice at temp T.
-float T=800; //K
-int equilSteps=50000;
-lattice.Equilibrate(equilSteps,T);
+float T=1200; //K
+int equilStepsPerSite=1000;
+lattice.Equilibrate(equilStepsPerSite,T);
 
 //output equilibrated lattice.
-std::string equilFile="Lattice_equil_" + std::to_string(equilSteps)+"_steps.dat";
+//TEST
+std::string equilFile="Lattice_equil_" + std::to_string(equilStepsPerSite)+"_stepsPerSite.dat";
 lattice.output_lattice(equilFile);
 
 return 0;
