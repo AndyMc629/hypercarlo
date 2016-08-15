@@ -63,9 +63,10 @@ void Lattice::initialise_lattice(std::string s) {
               for(int k=0;k<Nz;k++) {
                   lattice[i+j*Ny+k*Nz*Ny].x = 0; 
                   lattice[i+j*Ny+k*Nz*Ny].y = 0; 
-                  if(random>=0.5){
-                  lattice[i+j*Ny+k*Nz*Ny].z = 1;
-                  }
+                  random=randomNumber(0,1);
+				if(random>=0.5){
+					lattice[i+j*Ny+k*Nz*Ny].z = 1;
+				}
                   else{
                   lattice[i+j*Ny+k*Nz*Ny].z = -1;
                   }    
@@ -87,8 +88,8 @@ output.open(datafile.c_str());
 for(int i=0;i<Nx;i++) {
         for(int j=0;j<Ny;j++) {
             for(int k=0;k<Nz;k++) {             
-                output << i << "," << j << "," << k << "," << get_dipole(i,j,k).x << ","
-                << get_dipole(i,j,k).y << ","
+                output << i << " " << j << " " << k << " " << get_dipole(i,j,k).x << " "
+                << get_dipole(i,j,k).y << " "
                 << get_dipole(i,j,k).z << "\n";
                 }
             }
@@ -96,9 +97,19 @@ for(int i=0;i<Nx;i++) {
 output.close();
 }
 void Lattice::Equilibrate(int steps, float T) {
-for (int i=0;i<=steps;i++) {
+//Open data file to store equilibration stats.
+std::ofstream output;
+output.open("EquilibrationStats.dat");
+output << "#Equilibrated stats.\n"
+		<< "#nstep/site E_tot/site \n";   
+for (int i=0;i<=steps;i++) {	
 	MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),int(randomNumber(0,Nz)),T); 
+	if(((10*i)%steps)==0){ //every 10% output something
+		output << (float)i/(Nx*Ny*Nz) << " " << total_Energy()/(Nx*Ny*Nz) << "\n"; 
+std::cout << "total energy = " << total_Energy() << std::endl;
+	}	
 }
+output.close();
 }
 //Lattice member func, runs statistics run on lattice
 void Lattice::Run(int steps) {
@@ -181,6 +192,26 @@ float Lattice::site_Hamiltonian(int x, int y, int z) {
 	}
 return E;
 }
+float Lattice::total_Energy(){
+float E=0.0;
+float E_site=0.0;
+ for(int i=0;i<Nx;i++) {
+          for(int j=0;j<Ny;j++) {
+              for(int k=0;k<Nz;k++) {
+                 	E_site=site_Hamiltonian(i,j,k); 
+					E += E_site;
+				if(E_site>10e2) {
+                  std::cout << "E>100 = " << site_Hamiltonian(i,j,k) <<" at site ("<< i << ", "<< j << ", "<< k <<")" << std::endl;
+					output_lattice("ProblemLattice.dat");
+					}
+				}
+              }
+          }      
+std::cout << "Energy in total energy func = " << E << std::endl;
+return E;
+}
+
+
 float Lattice::dot_dipole(Lattice::dipole p1, Lattice::dipole p2){
 float dot=p1.x*p2.x+p1.y*p2.y+p1.z*p2.z;
 return dot;

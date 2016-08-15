@@ -38,6 +38,7 @@ class Lattice {
 		std::mt19937& m_rng;
 		//void initialise_lattice(std::string);
 		void MC_Step(int,int,int,float);
+		float total_Energy();
 	private:        
 		//sizes of crystal
 		int Nx,Ny,Nz;

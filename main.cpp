@@ -27,7 +27,7 @@ Run simulation on lattice, gather statistics --> Calculate averages --> Output a
 
 int main() {
 //Set size of lattice
-int Nx=5,Ny=5,Nz=5;
+int Nx=10,Ny=10,Nz=10;
 //Seed a Mersenne Twister random number generator.
 std::mt19937 rng{std::chrono::high_resolution_clock::now().time_since_epoch().count()};
 //Initialise a lattice object.
@@ -43,7 +43,7 @@ lattice.output_lattice("InitialState.dat");
 
 //equilibrate lattice at temp T.
 float T=800; //K
-int equilSteps=5000;
+int equilSteps=3;//50000;
 lattice.Equilibrate(equilSteps,T);
 
 //output equilibrated lattice.
