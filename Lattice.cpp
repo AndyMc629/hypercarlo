@@ -102,7 +102,7 @@ output.close();
 void Lattice::Equilibrate(int stepsPerSite, float T) {
 //Open data file to store equilibration stats.
 std::ofstream output;
-output.open("EquilibrationStats.dat");
+output.open("EquilibrationStats_"+std::to_string((int)T)+"K.dat");
 output << "#Equilibrated stats.\n"
 		<< "#kT/J nstep/site E_tot/site P_tot/site\n";   
 for (int i=0;i<=(stepsPerSite*Vol());i++) {	

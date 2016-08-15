@@ -43,10 +43,15 @@ lattice.output_lattice("InitialState.dat");
 float T=1200; //K
 int equilStepsPerSite=1000;
 lattice.Equilibrate(equilStepsPerSite,T);
-
 //output equilibrated lattice.
-//TEST
-std::string equilFile="Lattice_equil_" + std::to_string(equilStepsPerSite)+"_stepsPerSite.dat";
+std::string equilFile="Lattice_equil_" + std::to_string(equilStepsPerSite)+"_stepsPerSite_"+std::to_string((int)T)+"K.dat";
+lattice.output_lattice(equilFile);
+
+//Equilibrate again?
+T=500;
+lattice.Equilibrate(equilStepsPerSite,T);
+//output equilibrated lattice.
+equilFile="Lattice_equil_" + std::to_string(equilStepsPerSite)+"_stepsPerSite_"+std::to_string((int)T)+"K.dat";
 lattice.output_lattice(equilFile);
 
 return 0;
