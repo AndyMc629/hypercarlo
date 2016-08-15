@@ -31,7 +31,7 @@ class Lattice {
 		/*Output to file supplied by string*/
 		void output_lattice(std::string);
 		void Equilibrate(int, float);
-		void Run(int);
+		void Run(int,float);
 		float site_Hamiltonian(int, int, int);
 		float dot_dipole(Lattice::dipole p1, Lattice::dipole p2);
 		float randomNumber(float, float);
@@ -40,10 +40,12 @@ class Lattice {
 		void MC_Step(int,int,int,float);
 		float total_Energy();
 		float total_Polarisation();
+		float deltaE(int,int,int);
+		float E_av,P_av,Esqrd_av,Psqrd_av,Cv,Chi;
 	private:        
 		//sizes of crystal
 		int Nx,Ny,Nz;
     	float J=0.025;
-	};
+			};
 
 #endif

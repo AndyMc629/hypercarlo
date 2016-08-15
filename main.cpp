@@ -40,19 +40,24 @@ lattice.initialise_lattice("PARA_ISING");
 lattice.output_lattice("InitialState.dat");
 
 //equilibrate lattice at temp T.
-float T=1200; //K
+float temp; //K
 int equilStepsPerSite=1000;
-lattice.Equilibrate(equilStepsPerSite,T);
+int ensemble_size=1000;
+
+for (int T=1200;T>200;T=T-200) {
+temp=(float)T;
+lattice.Equilibrate(equilStepsPerSite,temp);
 //output equilibrated lattice.
 std::string equilFile="Lattice_equil_" + std::to_string(equilStepsPerSite)+"_stepsPerSite_"+std::to_string((int)T)+"K.dat";
 lattice.output_lattice(equilFile);
+//calc estimators
+lattice.Run(ensemble_size,temp);
 
-//Equilibrate again?
-T=500;
-lattice.Equilibrate(equilStepsPerSite,T);
-//output equilibrated lattice.
-equilFile="Lattice_equil_" + std::to_string(equilStepsPerSite)+"_stepsPerSite_"+std::to_string((int)T)+"K.dat";
-lattice.output_lattice(equilFile);
+std::cout << "\nT="<<T<<"K:\n"
+<< "E_av="<<lattice.E_av << "\n"
+<< "Esqrd_av="<<lattice.Esqrd_av << "\n"
+<< "Cv="<<lattice.Cv << "\n";
+}
 
 return 0;
 }

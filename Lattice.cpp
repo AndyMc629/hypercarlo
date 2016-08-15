@@ -8,7 +8,6 @@ using namespace Constants; //constants like pi.
 
 std::mt19937 m_rng; //forward declaring m_rng? does this make it work?
 
-
 //Lattice constructor
 Lattice::Lattice(int a, int b, int c, std::mt19937& rng) : Nx(a),Ny(b),Nz(c),m_rng(rng),lattice(a*b*c) 
 {}    
@@ -109,31 +108,34 @@ for (int i=0;i<=(stepsPerSite*Vol());i++) {
 	MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),int(randomNumber(0,Nz)),T); 
 	if(((10*i)%(stepsPerSite*Vol()))==0){ //every 10% output something
 		output << (0.025*T)/(J*(float)300) << " " <<  (float)i/(Vol()) << " " 
-		<< total_Energy()/(Vol()) << " " << total_Polarisation()/(Vol()) << "\n"; 
+		<< total_Energy() << " " << total_Polarisation() << "\n"; 
 		std::cout << ((float)i/stepsPerSite) << " steps/site: E/vol = " 
-		<< total_Energy()/Vol() << ", P/vol = " << total_Polarisation()/Vol() << std::endl;
+		<< total_Energy() << ", P/vol = " << total_Polarisation() << std::endl;
 	}	
 }
+
 output.close();
 }
 //Lattice member func, runs statistics run on lattice
-void Lattice::Run(int steps) {
-/*For equilibriate steps/dipole, choose a site at random and
-perform MC step on it*/
-/*PSEUDOCODE*/
-//for(m=0;m<EquilSteps;m++) {
-//(x,y,z)=rand;
-//MC_Step(x,y,z);
-//}
+void Lattice::Run(int ensembleSize, float T) {
+//Update global variables to latest values, they then have a starting 
+//value for the run() function:
+E_av=total_Energy();
+Esqrd_av=E_av*E_av;
+P_av=total_Polarisation();
+Psqrd_av=P_av*P_av;
 
-/*For run steps/dipole, choose a site at random and perform
-MC step on it*/
-/*PSEUDOCODE*/
-//for(n=0;n<RunSteps;m++) {
-//(x,y,z)=rand;
-//MC_Step(x,y,z);
-//}
+//We are in equilibrium so start running but updating the global
+//variables. 
+for (int i=0;i<=(ensembleSize);i++) {
+	MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),int(randomNumber(0,Nz)),T);
 }
+//Have been updating the estimators, now average them;
+E_av=E_av/ensembleSize;
+Esqrd_av=Esqrd_av/ensembleSize;
+Cv=( (float)300/(0.025*T) )*( (float)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
+}
+
 //Lattice member func, performs MC step on x,y,z coordinate dipole
 void Lattice::MC_Step(int x, int y, int z, float T) {
 /*Recover energy variable, should make that private?
@@ -141,6 +143,26 @@ Then propose random new dipole, calc change in energy for that new config
 relative to old config, accept or reject new dipole.*/
 //Note: see paper http://csml.northwestern.edu/resources/Preprints/mclr.pdf
 
+float dE=deltaE(x,y,z);
+//need a smarter way to do this in more advanced models ...
+
+//If energy change is positive need Boltzmann factor vs rand number
+if (dE>0) {
+	float beta=300/(0.025*T);
+	float p_boltz=exp( -beta*dE );
+	if (p_boltz < randomNumber(0,1)) { //i.e if boltz loses, reject change.
+		lattice[x+y*Nx+z*Nx*Ny].z=-lattice[x+y*Nx+z*Nx*Ny].z; //reverting to old.
+	}
+}
+else if(dE<=0) {
+//do nothing, i.e accept the new move.
+}
+}//end of MC_Step.
+
+//Change in energy upon flip,
+//has been abstracted to help
+//statistics gathering.
+float Lattice::deltaE(int x, int y, int z) {
 //Calc current energy and dipole
 float E_beforeFlip=site_Hamiltonian(x,y,z);
 dipole p_old = lattice[x+y*Nx+z*Nx*Ny];
@@ -150,13 +172,6 @@ dipole p_new;
 p_new.x=0; //Ising so only z component.
 p_new.y=0; //Ising so only z component.
 p_new.z= -p_old.z; //Ising so can only flip.
-//normalise to 1 - no need in Ising.
-//float norm = sqrt(p_new.x*p_new.x+p_new.y*p_new.y+p_new.z*p_new.z);
-//p_new.x=p_new.x/norm;p_new.y=p_new.y/norm;p_new.z=p_new.z/norm;
-
-//output for testing
-//std::cout << "old (px,py,pz)= " << p_old.x << " " << p_old.y << " " << p_old.z << std::endl;
-//std::cout << "new (px,py,pz)= " << p_new.x << " " << p_new.y << " " << p_new.z << std::endl;
 
 //update lattice point as new dipole and calc new energy
 lattice[x+y*Nx+z*Nx*Ny]=p_new;
@@ -166,18 +181,14 @@ float E_afterFlip=site_Hamiltonian(x,y,z);
 //std::cout<< "Ediff = " << E_afterFlip-E_beforeFlip << std::endl;
 float dE=E_afterFlip-E_beforeFlip;
 
-//If energy change is positive need Boltzmann factor vs rand number
-if (dE>0) {
-	float beta=300/(0.025*T);
-	float p_boltz=exp( -beta*dE );
-	if (p_boltz < randomNumber(0,1)) { //i.e if boltz loses, reject change.
-		lattice[x+y*Nx+z*Nx*Ny]=p_old;
-	}
+//update global E variables, has no effect for 
+//equilibration, only needed for run.
+E_av+=dE;
+Esqrd_av += dE*dE; 
+//
+//
+return dE;
 }
-else if(dE<=0) {
-//do nothing, i.e accept the new move.
-}
-}//end of MC_Step.
 
 float Lattice::site_Hamiltonian(int x, int y, int z) {
 //calculate the energy of a site with coord's x,y,z
@@ -233,7 +244,7 @@ float E_site=0.0;
 				}
               }
           }      
-return E;
+return E/Vol();
 }
 //Calc. total polarisation of lattice.
 //Choice of words not sacrosanct, this also
@@ -251,7 +262,7 @@ dipole P_net;P_net.x=0.0;P_net.y=0.0;P_net.z=0.0;
 			}
 		}
 float P_net_mag=sqrt(dot_dipole(P_net,P_net));
-return P_net_mag;
+return P_net_mag/Vol();
 }
 float Lattice::dot_dipole(Lattice::dipole p1, Lattice::dipole p2){
 float dot=p1.x*p2.x+p1.y*p2.y+p1.z*p2.z;
