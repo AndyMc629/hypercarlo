@@ -59,7 +59,7 @@ void Lattice::initialise_lattice(std::string s) {
     else if(s.compare("PARA_ISING")==0) {
 	//initialise stuff goes here ....
 	std::cout << "PARA ISING CHOSEN" << std::endl;	
-	float random=randomNumber(0,1);
+	double random=randomNumber(0,1);
 	for(int i=0;i<Nx;i++) {
           for(int j=0;j<Ny;j++) {
               for(int k=0;k<Nz;k++) {
@@ -98,7 +98,7 @@ for(int i=0;i<Nx;i++) {
         }
 output.close();
 }
-void Lattice::Equilibrate(int stepsPerSite, float T) {
+void Lattice::Equilibrate(int stepsPerSite, double T) {
 //Open data file to store equilibration stats.
 std::ofstream output;
 output.open("EquilibrationStats_"+std::to_string((int)T)+"K.dat");
@@ -107,9 +107,9 @@ output << "#Equilibrated stats.\n"
 for (int i=0;i<=(stepsPerSite*Vol());i++) {	
 	MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),int(randomNumber(0,Nz)),T); 
 	if(((10*i)%(stepsPerSite*Vol()))==0){ //every 10% output something
-		output << (0.025*T)/(J*(float)300) << " " <<  (float)i/(Vol()) << " " 
+		output << (0.025*T)/(J*(double)300) << " " <<  (double)i/(Vol()) << " " 
 		<< total_Energy() << " " << total_Polarisation() << "\n"; 
-		std::cout << ((float)i/stepsPerSite) << " steps/site: E/vol = " 
+		std::cout << ((double)i/stepsPerSite) << " steps/site: E/vol = " 
 		<< total_Energy() << ", P/vol = " << total_Polarisation() << std::endl;
 	}	
 }
@@ -117,13 +117,14 @@ for (int i=0;i<=(stepsPerSite*Vol());i++) {
 output.close();
 }
 //Lattice member func, runs statistics run on lattice
-void Lattice::Run(int ensembleSize, float T) {
+void Lattice::Run(int ensembleSize, double T) {
 //Update global variables to latest values, they then have a starting 
 //value for the run() function:
 E_av=total_Energy();
 Esqrd_av=E_av*E_av;
 P_av=total_Polarisation();
 Psqrd_av=P_av*P_av;
+Cv=( (double)300/(0.025*T) )*( (double)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
 
 //We are in equilibrium so start running but updating the global
 //variables. 
@@ -135,25 +136,31 @@ E_av=E_av/ensembleSize;
 Esqrd_av=Esqrd_av/ensembleSize;
 P_av=P_av/ensembleSize;
 Psqrd_av=Psqrd_av/ensembleSize;
-Cv=( (float)300/(0.025*T) )*( (float)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
+Cv=( (double)300/(0.025*T) )*( (double)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
 }
 
 //Lattice member func, performs MC step on x,y,z coordinate dipole
-void Lattice::MC_Step(int x, int y, int z, float T) {
+void Lattice::MC_Step(int x, int y, int z, double T) {
 /*Recover energy variable, should make that private?
 Then propose random new dipole, calc change in energy for that new config
 relative to old config, accept or reject new dipole.*/
 //Note: see paper http://csml.northwestern.edu/resources/Preprints/mclr.pdf
 
-float dE=deltaE(x,y,z);
+double dE=deltaE(x,y,z);
 //need a smarter way to do this in more advanced models ...
 
 //If energy change is positive need Boltzmann factor vs rand number
 if (dE>0) {
-	float beta=300/(0.025*T);
-	float p_boltz=exp( -beta*dE );
+	double beta=300/(0.025*T);
+	double p_boltz=exp( -beta*dE );
 	if (p_boltz < randomNumber(0,1)) { //i.e if boltz loses, reject change.
 		lattice[x+y*Nx+z*Nx*Ny].z=-lattice[x+y*Nx+z*Nx*Ny].z; //reverting to old.
+		}
+	else { //if move was accepted anyway update.
+	E_av+=dE;
+    Esqrd_av += dE*dE; 
+    P_av+=2*lattice[x+y*Nx+z*Nx*Ny].z/Vol();
+    Psqrd_av += (2*lattice[x+y*Nx+z*Nx*Ny].z*2*lattice[x+y*Nx+z*Nx*Ny].z)/(Vol()*Vol());
 	}
 }
 else if(dE<=0) {
@@ -164,9 +171,9 @@ else if(dE<=0) {
 //Change in energy upon flip,
 //has been abstracted to help
 //statistics gathering.
-float Lattice::deltaE(int x, int y, int z) {
+double Lattice::deltaE(int x, int y, int z) {
 //Calc current energy and dipole
-float E_beforeFlip=site_Hamiltonian(x,y,z);
+double E_beforeFlip=site_Hamiltonian(x,y,z);
 dipole p_old = lattice[x+y*Nx+z*Nx*Ny];
 
 //generate new trial dipole direction.
@@ -178,29 +185,31 @@ p_new.z= -p_old.z; //Ising so can only flip.
 //update lattice point as new dipole and calc new energy
 lattice[x+y*Nx+z*Nx*Ny]=p_new;
 //std::cout << "lattice (px,py,pz)= " << lattice[x+y*Nx+z*Nx*Ny].x << " " << lattice[x+y*Nx+z*Nx*Ny].y << " " << lattice[x+y*Nx+z*Nx*Ny].z << std::endl;
-float E_afterFlip=site_Hamiltonian(x,y,z);
+double E_afterFlip=site_Hamiltonian(x,y,z);
 
 //std::cout<< "Ediff = " << E_afterFlip-E_beforeFlip << std::endl;
-float dE=E_afterFlip-E_beforeFlip;
+double dE=E_afterFlip-E_beforeFlip;
 
 //update global E variables, has no effect for 
 //equilibration, only needed for run.
-E_av+=dE;
-Esqrd_av += dE*dE; 
-P_av+=fabs(2*p_new.z)/Vol();
-Psqrd_av += fabs(2*p_new.z)*fabs(2*p_new.z)/(Vol()*Vol());
+if (dE<0) { //if move will definitely be accepted.
+	E_av+=dE;
+	Esqrd_av += dE*dE; 
+	P_av+=2*p_new.z/Vol(); //dP = 2s_new (see MC books e.g Newman and Barkema)
+	Psqrd_av += (2*p_new.z*2*p_new.z)/(Vol()*Vol());
+	}
 //
 //
 return dE;
 }
 
-float Lattice::site_Hamiltonian(int x, int y, int z) {
+double Lattice::site_Hamiltonian(int x, int y, int z) {
 //calculate the energy of a site with coord's x,y,z
 	//ISING
 	//must calc with three seperate loops so that we don't get
 	//next to nearest neighbours from (x+1,y+1,k+1)
-	float E=0.0;
-	//float J=0.025;
+	double E=0.0;
+	//double J=0.025;
 	for (int i=-1;i<=1;i+=2) {
 	E += -J*dot_dipole(get_dipole(x,y,z),get_dipole(x+i,y,z));
 	}
@@ -230,9 +239,9 @@ for (int i=-1;i<=1;i+=2) {
 }
 return E;
 }
-float Lattice::total_Energy(){
-float E=0.0;
-float E_site=0.0;
+double Lattice::total_Energy(){
+double E=0.0;
+double E_site=0.0;
  for(int i=0;i<Nx;i++) {
           for(int j=0;j<Ny;j++) {
               for(int k=0;k<Nz;k++) {
@@ -253,7 +262,7 @@ return E/Vol();
 //Calc. total polarisation of lattice.
 //Choice of words not sacrosanct, this also
 //refers to the magnetisation for spin simulations.
-float Lattice::total_Polarisation(){
+double Lattice::total_Polarisation(){
 //vector to store net pol.
 dipole P_net;P_net.x=0.0;P_net.y=0.0;P_net.z=0.0;
 	for(int i=0;i<Nx;i++) {
@@ -265,16 +274,16 @@ dipole P_net;P_net.x=0.0;P_net.y=0.0;P_net.z=0.0;
 				}
 			}
 		}
-float P_net_mag=sqrt(dot_dipole(P_net,P_net));
+double P_net_mag=sqrt(dot_dipole(P_net,P_net));
 return P_net_mag/Vol();
 }
-float Lattice::dot_dipole(Lattice::dipole p1, Lattice::dipole p2){
-float dot=p1.x*p2.x+p1.y*p2.y+p1.z*p2.z;
+double Lattice::dot_dipole(Lattice::dipole p1, Lattice::dipole p2){
+double dot=p1.x*p2.x+p1.y*p2.y+p1.z*p2.z;
 return dot;
 }
 //create random number between min and max using mersenneTwister.
-float Lattice::randomNumber(float min, float max){
-        std::uniform_real_distribution<float> uniformDistribution(min, max);
+double Lattice::randomNumber(double min, double max){
+        std::uniform_real_distribution<double> uniformDistribution(min, max);
         return uniformDistribution(m_rng);
     }
 

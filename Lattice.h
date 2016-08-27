@@ -16,7 +16,7 @@ class Lattice {
 		were in private before but I want user to
 		be able to access these, I think.
 		i.e means I can change some vectors ad hoc.*/
-		struct dipole {float x; float y; float z;};
+		struct dipole {double x; double y; double z;};
 		//the lattice object is a vector of dipole structs.
 		std::vector<dipole> lattice;	
 		//get the dipole at xyz.
@@ -30,22 +30,22 @@ class Lattice {
 		void initialise_lattice(std::string);
 		/*Output to file supplied by string*/
 		void output_lattice(std::string);
-		void Equilibrate(int, float);
-		void Run(int,float);
-		float site_Hamiltonian(int, int, int);
-		float dot_dipole(Lattice::dipole p1, Lattice::dipole p2);
-		float randomNumber(float, float);
+		void Equilibrate(int, double);
+		void Run(int,double);
+		double site_Hamiltonian(int, int, int);
+		double dot_dipole(Lattice::dipole p1, Lattice::dipole p2);
+		double randomNumber(double, double);
 		std::mt19937& m_rng;
 		//void initialise_lattice(std::string);
-		void MC_Step(int,int,int,float);
-		float total_Energy();
-		float total_Polarisation();
-		float deltaE(int,int,int);
-		float E_av,P_av,Esqrd_av,Psqrd_av,Cv,Chi;
+		void MC_Step(int,int,int,double);
+		double total_Energy();
+		double total_Polarisation();
+		double deltaE(int,int,int);
+		double E_av,P_av,Esqrd_av,Psqrd_av,Cv,Chi;
 	private:        
 		//sizes of crystal
 		int Nx,Ny,Nz;
-    	float J=0.025;
+    	double J=0.025;
 			};
 
 #endif

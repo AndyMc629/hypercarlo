@@ -28,7 +28,7 @@ Run simulation on lattice, gather statistics --> Calculate averages --> Output a
 
 int main() {
 //Set size of lattice
-int Nx=10,Ny=10,Nz=10;
+int Nx=50,Ny=50,Nz=2;
 //Seed a Mersenne Twister random number generator.
 std::mt19937 rng{std::chrono::high_resolution_clock::now().time_since_epoch().count()};
 //Initialise a lattice object.
@@ -41,8 +41,8 @@ lattice.initialise_lattice("PARA_ISING");
 lattice.output_lattice("InitialState.dat");
 
 //equilibrate lattice at temp T.
-float temp; //K
-int equilStepsPerSite=10000;
+double temp; //K
+int equilStepsPerSite=100000;//10000;
 int ensemble_size=1000;
 
 
@@ -51,8 +51,8 @@ mainOutput.open("Output.dat");
 
 mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv\n"; 
 
-for (int T=900;T>=50;T=T-50) {
-temp=(float)T;
+for (int T=710;T>=10;T=T-100) {
+temp=(double)T;
 lattice.Equilibrate(equilStepsPerSite,temp);
 //output equilibrated lattice.
 std::string equilFile="Lattice_equil_" + std::to_string(equilStepsPerSite)+"_stepsPerSite_"+std::to_string((int)T)+"K.dat";
