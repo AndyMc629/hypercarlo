@@ -42,6 +42,7 @@ class Lattice {
 		double total_Polarisation();
 		double deltaE(int,int,int);
 		double E_av,P_av,Esqrd_av,Psqrd_av,Cv,Chi;
+		double P_AutoCorr;
 	private:        
 		//sizes of crystal
 		int Nx,Ny,Nz;

@@ -125,7 +125,9 @@ Esqrd_av=E_av*E_av;
 P_av=total_Polarisation();
 Psqrd_av=P_av*P_av;
 Cv=( (double)300/(0.025*T) )*( (double)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
+P_AutoCorr=P_av; //will update this properly later - 27/8/2016.
 
+corr_time=100; //arb for now, will work out from autocorr. eventually - 27/8/2016.
 //We are in equilibrium so start running but updating the global
 //variables. 
 for (int i=0;i<=(ensembleSize);i++) {
