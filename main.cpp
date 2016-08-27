@@ -19,6 +19,7 @@ Run simulation on lattice, gather statistics --> Calculate averages --> Output a
 
 #include<cstdlib>
 #include<iostream>
+#include<fstream>
 #include "Lattice.h"
 #include<vector>
 #include<random>
@@ -41,10 +42,16 @@ lattice.output_lattice("InitialState.dat");
 
 //equilibrate lattice at temp T.
 float temp; //K
-int equilStepsPerSite=1000;
+int equilStepsPerSite=10000;
 int ensemble_size=1000;
 
-for (int T=1200;T>200;T=T-200) {
+
+std::ofstream mainOutput;
+mainOutput.open("Output.dat");
+
+mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv\n"; 
+
+for (int T=900;T>=50;T=T-50) {
 temp=(float)T;
 lattice.Equilibrate(equilStepsPerSite,temp);
 //output equilibrated lattice.
@@ -53,11 +60,17 @@ lattice.output_lattice(equilFile);
 //calc estimators
 lattice.Run(ensemble_size,temp);
 
-std::cout << "\nT="<<T<<"K:\n"
+std::cout << "T="<<T<<"K:\n"
 << "E_av="<<lattice.E_av << "\n"
 << "Esqrd_av="<<lattice.Esqrd_av << "\n"
-<< "Cv="<<lattice.Cv << "\n";
-}
+<< "Cv="<<lattice.Cv << "\n"
+<< "P_av="<<lattice.P_av << "\n"
+<< "Psqrd_av="<<lattice.Psqrd_av<<"\n\n";
 
+mainOutput << T << " " << lattice.E_av << " " << lattice.Esqrd_av << " "
+<<lattice.P_av<< " " << lattice.Psqrd_av << " " << lattice.Cv << "\n";
+
+}
+mainOutput.close();
 return 0;
 }

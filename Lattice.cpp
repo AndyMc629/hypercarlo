@@ -133,6 +133,8 @@ for (int i=0;i<=(ensembleSize);i++) {
 //Have been updating the estimators, now average them;
 E_av=E_av/ensembleSize;
 Esqrd_av=Esqrd_av/ensembleSize;
+P_av=P_av/ensembleSize;
+Psqrd_av=Psqrd_av/ensembleSize;
 Cv=( (float)300/(0.025*T) )*( (float)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
 }
 
@@ -185,6 +187,8 @@ float dE=E_afterFlip-E_beforeFlip;
 //equilibration, only needed for run.
 E_av+=dE;
 Esqrd_av += dE*dE; 
+P_av+=fabs(2*p_new.z)/Vol();
+Psqrd_av += fabs(2*p_new.z)*fabs(2*p_new.z)/(Vol()*Vol());
 //
 //
 return dE;
