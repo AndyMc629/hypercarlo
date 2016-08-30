@@ -30,7 +30,11 @@ int main() {
 //Set size of lattice
 int Nx=50,Ny=50,Nz=2;
 //Seed a Mersenne Twister random number generator.
+//below version works on linux machine.
 std::mt19937 rng{std::chrono::high_resolution_clock::now().time_since_epoch().count()};
+//attempt to make it work on macbook.
+//std::mt19937 rng{int(std::chrono::high_resolution_clock::now().time_since_epoch().count())};
+
 //Initialise a lattice object.
 Lattice lattice=Lattice(Nx,Ny,Nz,rng);
 
