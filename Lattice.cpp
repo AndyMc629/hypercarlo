@@ -120,25 +120,24 @@ output.close();
 void Lattice::Run(int ensembleSize, double T) {
 //Update global variables to latest values, they then have a starting 
 //value for the run() function:
-E_av=total_Energy();
-Esqrd_av=E_av*E_av;
-P_av=total_Polarisation();
-Psqrd_av=P_av*P_av;
-Cv=( (double)300/(0.025*T) )*( (double)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
-P_AutoCorr=P_av; //will update this properly later - 27/8/2016.
+E=total_Energy();
+Esqrd=E*E;
+P=total_Polarisation();
+Psqrd=P*P;
+//Cv=( (double)300/(0.025*T) )*( (double)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
+//P_AutoCorr=P_av; //will update this properly later - 27/8/2016.
 
-corr_time=100; //arb for now, will work out from autocorr. eventually - 27/8/2016.
+//corr_time=100; //arb for now, will work out from autocorr. eventually - 27/8/2016.
+
 //We are in equilibrium so start running but updating the global
 //variables. 
 for (int i=0;i<=(ensembleSize);i++) {
 	MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),int(randomNumber(0,Nz)),T);
 }
 //Have been updating the estimators, now average them;
-E_av=E_av/ensembleSize;
-Esqrd_av=Esqrd_av/ensembleSize;
-P_av=P_av/ensembleSize;
-Psqrd_av=Psqrd_av/ensembleSize;
-Cv=( (double)300/(0.025*T) )*( (double)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
+
+
+//Cv=( (double)300/(0.025*T) )*( (double)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
 }
 
 //Lattice member func, performs MC step on x,y,z coordinate dipole
@@ -159,10 +158,10 @@ if (dE>0) {
 		lattice[x+y*Nx+z*Nx*Ny].z=-lattice[x+y*Nx+z*Nx*Ny].z; //reverting to old.
 		}
 	else { //if move was accepted anyway update.
-	E_av+=dE;
-    Esqrd_av += dE*dE; 
-    P_av+=2*lattice[x+y*Nx+z*Nx*Ny].z/Vol();
-    Psqrd_av += (2*lattice[x+y*Nx+z*Nx*Ny].z*2*lattice[x+y*Nx+z*Nx*Ny].z)/(Vol()*Vol());
+	E+=dE;
+    Esqrd += dE*dE; 
+    P += 2*lattice[x+y*Nx+z*Nx*Ny].z/Vol();
+    Psqrd += (2*lattice[x+y*Nx+z*Nx*Ny].z*2*lattice[x+y*Nx+z*Nx*Ny].z)/(Vol()*Vol());
 	}
 }
 else if(dE<=0) {
@@ -195,10 +194,10 @@ double dE=E_afterFlip-E_beforeFlip;
 //update global E variables, has no effect for 
 //equilibration, only needed for run.
 if (dE<0) { //if move will definitely be accepted.
-	E_av+=dE;
-	Esqrd_av += dE*dE; 
-	P_av+=2*p_new.z/Vol(); //dP = 2s_new (see MC books e.g Newman and Barkema)
-	Psqrd_av += (2*p_new.z*2*p_new.z)/(Vol()*Vol());
+	E += dE;
+	Esqrd += dE*dE; 
+	P += 2*p_new.z/Vol(); //dP = 2s_new (see MC books e.g Newman and Barkema)
+	Psqrd += (2*p_new.z*2*p_new.z)/(Vol()*Vol());
 	}
 //
 //
