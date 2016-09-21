@@ -31,7 +31,7 @@ class Lattice {
 		/*Output to file supplied by string*/
 		void output_lattice(std::string);
 		void Equilibrate(int, double);
-		void Run(int,double);
+		void Run(int,int,double);
 		double site_Hamiltonian(int, int, int);
 		double dot_dipole(Lattice::dipole p1, Lattice::dipole p2);
 		double randomNumber(double, double);

@@ -117,7 +117,7 @@ for (int i=0;i<=(stepsPerSite*Vol());i++) {
 output.close();
 }
 //Lattice member func, runs statistics run on lattice
-void Lattice::Run(int ensembleSize, double T) {
+void Lattice::Run(int ensembleSize, int nEnsembles, double T) {
 //Update global variables to latest values, they then have a starting 
 //value for the run() function:
 E=total_Energy();
@@ -129,17 +129,25 @@ Psqrd=P*P;
 
 //corr_time=100; //arb for now, will work out from autocorr. eventually - 27/8/2016.
 
+//open output file;
+std::ofstream runOutput;
+runOutput.open("RunStats_"+std::to_string((int)T)+"K.dat");
+
+for (int j=0;j<=(nEnsembles);j++) {
 //We are in equilibrium so start running but updating the global
 //variables. 
 for (int i=0;i<=(ensembleSize);i++) {
 	MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),int(randomNumber(0,Nz)),T);
 }
 //Have been updating the estimators, now average them;
-
-
+E_av+=E;
+P_av+=P;
 //Cv=( (double)300/(0.025*T) )*( (double)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
-}
+} //after all ensembles take average 
+E_av=E_av/nEnsemble;
+P_av=P_av/nEnsemble;
 
+}
 //Lattice member func, performs MC step on x,y,z coordinate dipole
 void Lattice::MC_Step(int x, int y, int z, double T) {
 /*Recover energy variable, should make that private?
