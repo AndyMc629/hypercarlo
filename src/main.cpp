@@ -28,7 +28,7 @@ Run simulation on lattice, gather statistics --> Calculate averages --> Output a
 
 int main() {
 //Set size of lattice
-int Nx=15,Ny=15,Nz=15;
+int Nx=40,Ny=40;
 //Seed a Mersenne Twister random number generator.
 //below version works on linux machine.
 //std::mt19937 rng{std::chrono::high_resolution_clock::now().time_since_epoch().count()};
@@ -36,17 +36,17 @@ int Nx=15,Ny=15,Nz=15;
 std::mt19937 rng{static_cast<std::mt19937>(std::chrono::high_resolution_clock::now().time_since_epoch().count())};
 
 //Initialise a lattice object.
-Lattice lattice=Lattice(Nx,Ny,Nz,rng);
+Lattice lattice=Lattice(Nx,Ny,rng);
 
 
 //Initialise the lattice to FERRO or PARA
-lattice.initialise_lattice("PARA_ISING");
+lattice.initialise_lattice("FERRO");
 //output initial lattice.
 lattice.output_lattice("InitialState.dat");
 
 //equilibrate lattice at temp T.
 double temp; //K
-int equilStepsPerSite=100000;//5000;//100000;//10000;
+int equilStepsPerSite=5000;//100000;//10000;
 int ensemble_size=1000;
 
 std::ofstream mainOutput;
@@ -54,17 +54,17 @@ mainOutput.open("Output.dat");
 
 mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv\n"; 
 
-for (int T=1550;T>=850;T=T-100) {
+for (int T=600;T<=900;T=T+25) {
 temp=(double)T;
 // //randomise
-lattice.initialise_lattice("PARA_ISING");
+//lattice.initialise_lattice("FERRO");
 //equilibrate
 lattice.Equilibrate(equilStepsPerSite,temp);
 //output equilibrated lattice.
 std::string equilFile="Lattice_equil_" + std::to_string(equilStepsPerSite)+"_stepsPerSite_"+std::to_string((int)T)+"K.dat";
 lattice.output_lattice(equilFile);
 //calc estimators
-lattice.Run(100, ensemble_size,temp);
+lattice.Run(150, ensemble_size,temp);
 
 std::cout << "T="<<T<<"K:\n"
 << "E_av="<<lattice.E_av << "\n"
