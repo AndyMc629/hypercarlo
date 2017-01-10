@@ -88,34 +88,35 @@ for(int i=0;i<Nx;i++) {
             }
 output.close();
 }
+//Lattice member func, equilibrate for stepsPerSite MCSweeps.
 void Lattice::Equilibrate(int stepsPerSite, double T) {
 //Open data file to store equilibration stats.
 std::ofstream output;
 output.open("EquilibrationStats_"+std::to_string((int)T)+"K.dat");
 output << "#Equilibrated stats.\n"
-		<< "#kT/J nstep/site E_tot/site P_tot/site\n";   
+		<< "#kT/J nstep/site E_tot/site E_tot(global)/site P_tot/site\n";   
 
 for (int i=0;i<=(stepsPerSite*Vol());i++) {	
 	MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T); 
 	
 	if(  (i%(stepsPerSite*Vol()/10))==0 ){ //every 10% output something
 		output << (0.025*T)/(J*(double)300) << " " <<  (double)i/(Vol()) << " " 
-		<< total_Energy() << " " << total_Polarisation() << "\n"; 
+		<< total_Energy() << " " << E_total/Vol() << " " << total_Polarisation() << "\n"; 
 		std::cout << ((double)i/Vol()) << " steps/site: E/vol = " 
 		<< total_Energy() << ", P/vol = " << total_Polarisation() << std::endl;
 	}	
 }
-
 output.close();
 }
+
 //Lattice member func, runs statistics run on lattice
 void Lattice::Run(int sampleDistance, int nSamples, double T) {
 //Update global variables to latest values, they then have a starting 
 //value for the run() function:
-E=total_Energy();
-Esqrd=E*E;
-P=total_Polarisation();
-Psqrd=P*P;
+E_total=total_Energy();
+Esqrd=E_total*E_total;
+P_total=total_Polarisation();
+Psqrd=P_total*P_total;
 //Cv=( (double)300/(0.025*T) )*( (double)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
 //P_AutoCorr=P_av; //will update this properly later - 27/8/2016.
 
@@ -124,16 +125,17 @@ Psqrd=P*P;
 //open output file;
 //std::ofstream runOutput;
 //runOutput.open("RunStats_"+std::to_string((int)T)+"K.dat");
-
+E_av=0.0;
+P_av=0.0;
 for (int j=0;j<=(nSamples);j++) {
 //We are in equilibrium so start running but updating the global
-//variables. 
+//variables in the MC_step function. 
 for (int i=0;i<=(sampleDistance*Vol());i++) {
 	MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T);
 }
 //Have been updating the estimators, now average them;
-E_av+=E;
-P_av+=P;
+E_av+=E_total;
+P_av+=P_total;
 //Cv=( (double)300/(0.025*T) )*( (double)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
 } //after all ensembles take average 
 //these are outputted in main.cpp loop.
@@ -159,15 +161,15 @@ if (dE>0) {
 		lattice[x+y*Nx].z=-lattice[x+y*Nx].z; //reverting to old.
 		}
 	else { //if move was accepted anyway update.
-	E+=dE;
+	E_total+=dE;
     Esqrd += dE*dE; 
-    P += 2*lattice[x+y*Nx].z/Vol();
+    P_total += 2*lattice[x+y*Nx].z/Vol();
     Psqrd += (2*lattice[x+y*Nx].z*2*lattice[x+y*Nx].z)/(Vol()*Vol());
 	}
 }
 else if(dE<=0) {
-//do nothing, i.e accept the new move.
-}
+//do nothing, i.e accept the new move performed in deltaE(...).
+} 
 }//end of MC_Step.
 
 //Change in energy upon flip,
@@ -194,10 +196,10 @@ double dE=E_afterFlip-E_beforeFlip;
 
 //update global E variables, has no effect for 
 //equilibration, only needed for run.
-if (dE<0) { //if move will definitely be accepted.
-	E += dE;
+if (dE<=0) { //if move will definitely be accepted.
+	E_total += dE;
 	Esqrd += dE*dE; 
-	P += 2*p_new.z/Vol(); //dP = 2s_new (see MC books e.g Newman and Barkema)
+	P_total += 2*p_new.z/Vol(); //dP = 2s_new (see MC books e.g Newman and Barkema)
 	Psqrd += (2*p_new.z*2*p_new.z)/(Vol()*Vol());
 	}
 //

@@ -41,8 +41,8 @@ class Lattice {
 		double total_Energy();
 		double total_Polarisation();
 		double deltaE(int,int);
-		double E,P,Esqrd,Psqrd;
-        double E_av,P_av,Esqrd_av,Psqrd_av,Cv,Chi;
+		double E_total=0.0,P_total=0.0,Esqrd=0.0,Psqrd=0.0;
+        double E_av=0.0,P_av=0.0,Esqrd_av=0.0,Psqrd_av=0.0,Cv,Chi;
 		double P_AutoCorr;
 	private:        
 		//sizes of crystal
