@@ -113,35 +113,35 @@ output.close();
 void Lattice::Run(int sampleDistance, int nSamples, double T) {
 //Update global variables to latest values, they then have a starting 
 //value for the run() function:
-E_total=total_Energy();
-Esqrd=E_total*E_total;
-P_total=total_Polarisation();
-Psqrd=P_total*P_total;
-//Cv=( (double)300/(0.025*T) )*( (double)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
-//P_AutoCorr=P_av; //will update this properly later - 27/8/2016.
+    Accepted=0; Rejected=0;
+    E_total=total_Energy();
+    Esqrd=E_total*E_total;
+    P_total=total_Polarisation();
+    Psqrd=P_total*P_total;
+    //Cv=( (double)300/(0.025*T) )*( (double)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
+    //P_AutoCorr=P_av; //will update this properly later - 27/8/2016.
 
-//corr_time=100; //arb for now, will work out from autocorr. eventually - 27/8/2016.
+    //corr_time=100; //arb for now, will work out from autocorr. eventually - 27/8/2016.
 
-//open output file;
-//std::ofstream runOutput;
-//runOutput.open("RunStats_"+std::to_string((int)T)+"K.dat");
-E_av=0.0;
-P_av=0.0;
-for (int j=0;j<=(nSamples);j++) {
-//We are in equilibrium so start running but updating the global
-//variables in the MC_step function. 
-for (int i=0;i<=(sampleDistance*Vol());i++) {
-	MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T);
-}
-//Have been updating the estimators, now average them;
-E_av+=E_total;
-P_av+=P_total;
-//Cv=( (double)300/(0.025*T) )*( (double)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
-} //after all ensembles take average 
-//these are outputted in main.cpp loop.
-E_av=E_av/nSamples;
-P_av=P_av/nSamples;
-
+    //open output file;
+    //std::ofstream runOutput;
+    //runOutput.open("RunStats_"+std::to_string((int)T)+"K.dat");
+    E_av=0.0;
+    P_av=0.0;
+    for (int j=0;j<=(nSamples);j++) {
+    //We are in equilibrium so start running but updating the global
+    //variables in the MC_step function. 
+    for (int i=0;i<=(sampleDistance*Vol());i++) {
+        MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T);
+    }
+    //Have been updating the estimators, now average them;
+    E_av+=total_Energy();
+    P_av+=total_Polarisation();
+    //Cv=( (double)300/(0.025*T) )*( (double)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
+    } //after all ensembles take average 
+    //these are outputted in main.cpp loop.
+    E_av=E_av/nSamples;
+    P_av=P_av/nSamples;
 }
 //Lattice member func, performs MC step on x,y,z coordinate dipole
 void Lattice::MC_Step(int x, int y, double T) {
@@ -158,17 +158,21 @@ if (dE>0) {
 	double beta=300/(0.025*T);
 	double p_boltz=exp( -beta*dE );
 	if (p_boltz < randomNumber(0,1)) { //i.e if boltz loses, reject change.
-		lattice[x+y*Nx].z=-lattice[x+y*Nx].z; //reverting to old.
+                Rejected++;
+                lattice[x+y*Nx].z=-lattice[x+y*Nx].z; //reverting to old.
 		}
 	else { //if move was accepted anyway update.
-	E_total+=dE;
-    Esqrd += dE*dE; 
-    P_total += 2*lattice[x+y*Nx].z/Vol();
-    Psqrd += (2*lattice[x+y*Nx].z*2*lattice[x+y*Nx].z)/(Vol()*Vol());
-	}
+            Accepted++;
+            E_total+=dE;
+            Esqrd += dE*dE; 
+            P_total += 2*lattice[x+y*Nx].z/Vol();
+            Psqrd += (2*lattice[x+y*Nx].z*2*lattice[x+y*Nx].z)/(Vol()*Vol());
+        }
 }
 else if(dE<=0) {
-//do nothing, i.e accept the new move performed in deltaE(...).
+//do nothing to updated dipole (updated in deltaE), 
+// i.e accept the new move performed in deltaE(...).
+    Accepted++;
 } 
 }//end of MC_Step.
 
@@ -201,7 +205,7 @@ if (dE<=0) { //if move will definitely be accepted.
 	Esqrd += dE*dE; 
 	P_total += 2*p_new.z/Vol(); //dP = 2s_new (see MC books e.g Newman and Barkema)
 	Psqrd += (2*p_new.z*2*p_new.z)/(Vol()*Vol());
-	}
+	} 
 //
 //
 return dE;

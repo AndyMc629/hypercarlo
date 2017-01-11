@@ -68,10 +68,8 @@ lattice.Run(150, ensemble_size,temp);
 
 std::cout << "T="<<T<<"K:\n"
 << "E_av="<<lattice.E_av << "\n"
-<< "Esqrd_av="<<lattice.Esqrd_av << "\n"
-<< "Cv="<<lattice.Cv << "\n"
 << "P_av="<<lattice.P_av << "\n"
-<< "Psqrd_av="<<lattice.Psqrd_av<<"\n\n";
+<< "Accepted="<<lattice.Accepted<<" , Rejected="<<lattice.Rejected<< "\n\n"
 
 mainOutput << T << " " << lattice.E_av << " " << lattice.Esqrd_av << " "
 <<lattice.P_av<< " " << lattice.Psqrd_av << " " << lattice.Cv << "\n";
