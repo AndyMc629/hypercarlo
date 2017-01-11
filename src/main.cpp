@@ -46,7 +46,7 @@ lattice.output_lattice("InitialState.dat");
 
 //equilibrate lattice at temp T.
 double temp; //K
-int equilStepsPerSite=5000;//100000;//10000;
+int equilStepsPerSite=10000;//100000;//10000;
 int ensemble_size=1000;
 
 std::ofstream mainOutput;
@@ -54,7 +54,7 @@ mainOutput.open("Output.dat");
 
 mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv\n"; 
 
-for (int T=600;T<=900;T=T+25) {
+for (int T=200;T<=900;T=T+25) {
 temp=(double)T;
 // //randomise
 //lattice.initialise_lattice("FERRO");
@@ -69,7 +69,7 @@ lattice.Run(150, ensemble_size,temp);
 std::cout << "T="<<T<<"K:\n"
 << "E_av="<<lattice.E_av << "\n"
 << "P_av="<<lattice.P_av << "\n"
-<< "Accepted="<<lattice.Accepted<<" , Rejected="<<lattice.Rejected<< "\n\n"
+<< "Accepted="<<lattice.Accepted<<" , Rejected="<<lattice.Rejected<< "\n\n";
 
 mainOutput << T << " " << lattice.E_av << " " << lattice.Esqrd_av << " "
 <<lattice.P_av<< " " << lattice.Psqrd_av << " " << lattice.Cv << "\n";

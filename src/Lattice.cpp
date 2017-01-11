@@ -101,7 +101,7 @@ for (int i=0;i<=(stepsPerSite*Vol());i++) {
 	
 	if(  (i%(stepsPerSite*Vol()/10))==0 ){ //every 10% output something
 		output << (0.025*T)/(J*(double)300) << " " <<  (double)i/(Vol()) << " " 
-		<< total_Energy() << " " << E_total/Vol() << " " << total_Polarisation() << "\n"; 
+		<< total_Energy() << " " << E_total << " " << total_Polarisation() << "\n"; 
 		std::cout << ((double)i/Vol()) << " steps/site: E/vol = " 
 		<< total_Energy() << ", P/vol = " << total_Polarisation() << std::endl;
 	}	
@@ -256,7 +256,7 @@ double E_site=0.0;
 					}
               }
           }      
-return E/Vol();
+return E;
 }
 //Calc. total polarisation of lattice.
 //Choice of words not sacrosanct, this also
