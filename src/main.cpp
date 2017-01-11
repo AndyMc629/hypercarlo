@@ -24,9 +24,14 @@ Run simulation on lattice, gather statistics --> Calculate averages --> Output a
 #include<vector>
 #include<random>
 #include<chrono>
+#include<ctime> //output times in log files
 //using namespace std;
 
 int main() {
+
+ /*************************** 
+ * SET UP THE RUN PARAMETERS 
+ ****************************/    
 //Set size of lattice
 int Nx=40,Ny=40;
 //Seed a Mersenne Twister random number generator.
@@ -37,7 +42,6 @@ std::mt19937 rng{static_cast<std::mt19937>(std::chrono::high_resolution_clock::n
 
 //Initialise a lattice object.
 Lattice lattice=Lattice(Nx,Ny,rng);
-
 
 //Initialise the lattice to FERRO or PARA
 lattice.initialise_lattice("FERRO");
@@ -52,9 +56,18 @@ int ensemble_size=1000;
 std::ofstream mainOutput;
 mainOutput.open("Output.dat");
 
+// current date/time based on current system
+time_t now = time(0);
+// convert now to string form
+char* dt = ctime(&now);
+
+mainOutput << "# Run began:" << dt << "\n" 
+           << "# Key run parameters:\n" 
+           << "# equilStepsPerSite = " << equilStepsPerSite << "\n"
+           << "# ensemble_size = " << ensemble_size << "\n#\n";
 mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv\n"; 
 
-for (int T=200;T<=900;T=T+25) {
+for (int T=100;T<=200;T=T+25) {
 temp=(double)T;
 // //randomise
 //lattice.initialise_lattice("FERRO");

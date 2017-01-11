@@ -33,6 +33,7 @@ class Lattice {
 		void Equilibrate(int, double);
 		void Run(int,int,double);
 		double site_Hamiltonian(int, int);
+                double site_Energy(int, int);
 		double dot_dipole(Lattice::dipole p1, Lattice::dipole p2);
 		double randomNumber(double, double);
 		std::mt19937& m_rng;

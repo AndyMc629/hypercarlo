@@ -90,6 +90,8 @@ output.close();
 }
 //Lattice member func, equilibrate for stepsPerSite MCSweeps.
 void Lattice::Equilibrate(int stepsPerSite, double T) {
+E_total=total_Energy();
+P_total=total_Polarisation();
 //Open data file to store equilibration stats.
 std::ofstream output;
 output.open("EquilibrationStats_"+std::to_string((int)T)+"K.dat");
@@ -103,7 +105,8 @@ for (int i=0;i<=(stepsPerSite*Vol());i++) {
 		output << (0.025*T)/(J*(double)300) << " " <<  (double)i/(Vol()) << " " 
 		<< total_Energy() << " " << E_total << " " << total_Polarisation() << "\n"; 
 		std::cout << ((double)i/Vol()) << " steps/site: E/vol = " 
-		<< total_Energy() << ", P/vol = " << total_Polarisation() << std::endl;
+		<< total_Energy() << ", " << E_total << ", P/vol = " 
+                << total_Polarisation() << ", " << P_total << std::endl;
 	}	
 }
 output.close();
@@ -165,7 +168,7 @@ if (dE>0) {
             Accepted++;
             E_total+=dE;
             Esqrd += dE*dE; 
-            P_total += 2*lattice[x+y*Nx].z/Vol();
+            P_total += 2*lattice[x+y*Nx].z/Vol(); 
             Psqrd += (2*lattice[x+y*Nx].z*2*lattice[x+y*Nx].z)/(Vol()*Vol());
         }
 }
@@ -181,7 +184,9 @@ else if(dE<=0) {
 //statistics gathering.
 double Lattice::deltaE(int x, int y) {
 //Calc current energy and dipole
-double E_beforeFlip=site_Hamiltonian(x,y);
+double E_beforeFlip=site_Energy(x,y);
+double E_beforeTEST=total_Energy();
+
 dipole p_old = lattice[x+y*Nx];
 
 //generate new trial dipole direction.
@@ -193,11 +198,16 @@ p_new.z= -p_old.z; //Ising so can only flip.
 //update lattice point as new dipole and calc new energy
 lattice[x+y*Nx]=p_new;
 //std::cout << "lattice (px,py,pz)= " << lattice[x+y*Nx+z*Nx*Ny].x << " " << lattice[x+y*Nx+z*Nx*Ny].y << " " << lattice[x+y*Nx+z*Nx*Ny].z << std::endl;
-double E_afterFlip=site_Hamiltonian(x,y);
-
+double E_afterFlip=site_Energy(x,y);
+double E_afterTEST=total_Energy();
 //std::cout<< "Ediff = " << E_afterFlip-E_beforeFlip << std::endl;
-double dE=E_afterFlip-E_beforeFlip;
 
+double dE=(E_afterFlip-E_beforeFlip);
+
+if(dE != (E_afterTEST-E_beforeTEST)) {
+std::cout<< "PROBLEM!!!\ndE=" << dE << "\nE_after-E_before=" 
+        << E_afterTEST-E_beforeTEST << std::endl;
+}
 //update global E variables, has no effect for 
 //equilibration, only needed for run.
 if (dE<=0) { //if move will definitely be accepted.
@@ -211,51 +221,40 @@ if (dE<=0) { //if move will definitely be accepted.
 return dE;
 }
 
+double Lattice::site_Energy(int x, int y) {
+    double E=0.0;
+    for (int i=-1;i<=1;i+=2) {
+	E += site_Hamiltonian(x+i,y);
+	}
+	for (int j=-1;j<=1;j+=2) {
+	E += site_Hamiltonian(x,y+j);		
+	}
+    return E;    
+}
+
+//Site Hamiltonian is interaction between particle at x and y, NOT the
+//total energy of the site!!!! That is in site_Energy()
 double Lattice::site_Hamiltonian(int x, int y) {
-//calculate the energy of a site with coord's x,y,z
+//calculate the Hamiltonian for a site with coord's x,y,z
 	//ISING
 	//must calc with three seperate loops so that we don't get
 	//next to nearest neighbours from (x+1,y+1,k+1)
-	double E=0.0;
-	//double J=0.025;
+	double H=0.0;
 	for (int i=-1;i<=1;i+=2) {
-	E += -J*dot_dipole(get_dipole(x,y),get_dipole(x+i,y));
+	H += -J*dot_dipole(get_dipole(x,y),get_dipole(x+i,y));
 	}
 	for (int j=-1;j<=1;j+=2) {
-	E += -J*dot_dipole(get_dipole(x,y),get_dipole(x,y+j));		
+	H += -J*dot_dipole(get_dipole(x,y),get_dipole(x,y+j));		
 	}
-if(E>10e2) {
-std::cout << "\n \n \n ********************************\n"
-			<<" WARNING! High energy on a site, most likely an error. More info below:" 
-			<<" \n In site H func: \n"; 
-for (int i=-1;i<=1;i+=2) {
-     E += -J*dot_dipole(get_dipole(x,y),get_dipole(x+i,y));
-     std::cout << "dot1= "<< -J*dot_dipole(get_dipole(x,y),get_dipole(x+i,y)) << "\n";
-		}
-     for (int j=-1;j<=1;j+=2) {
-     E += -J*dot_dipole(get_dipole(x,y),get_dipole(x,y+j));
-	std::cout << "dot2 = "<< -J*dot_dipole(get_dipole(x,y),get_dipole(x,y+j)) << "\n";
-     }
-
-}
-return E;
+    return H;
 }
 double Lattice::total_Energy(){
 double E=0.0;
-double E_site=0.0;
  for(int i=0;i<Nx;i++) {
           for(int j=0;j<Ny;j++) {
-                 	E_site=site_Hamiltonian(i,j); 
-					E += E_site;
-				if(E_site>10e2) {
-				std::cout << "\n \n \n ********************************\n" 
-		             <<" WARNING! High energy on a site, most likely an error. Lattice config will be outputted\n"
-						<<"More info below:\n";
-					std::cout << "E>100 = " << site_Hamiltonian(i,j) <<" at site ("<< i << ", "<< j << ")" << std::endl;
-					output_lattice("ProblemLattice.dat");
-					}
-              }
-          }      
+                E+=site_Hamiltonian(i,j); 
+          }
+        }      
 return E;
 }
 //Calc. total polarisation of lattice.
