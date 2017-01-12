@@ -3,7 +3,7 @@
 #include<random> //for MT algorithm.
 #include "Constants.h" //constants like pi.
 #include<cmath>
-
+#include "mathsFuncs.h" //for correct modulo function etc...
 using namespace Constants; //constants like pi.
 
 std::mt19937 m_rng; //forward declaring m_rng? does this make it work?
@@ -22,7 +22,7 @@ int Lattice::Vol(void) {
 //coordinate (minus one
 //because c++ arrays start at zero).
 Lattice::dipole Lattice::get_dipole(int x,int y) {
-	return lattice[(x%(Nx-1))+(y%(Ny-1))*Nx];
+        return lattice[mod(x,Nx)+mod(y,Ny)*Nx]; //periodic boundary conditions
 }
 //Lattice member func, initialise lattice dep on string
 void Lattice::initialise_lattice(std::string s) {
@@ -32,9 +32,9 @@ void Lattice::initialise_lattice(std::string s) {
 	std::cout << "FERRO CHOSEN" << std::endl;
 	for(int i=0;i<Nx;i++) {
 		for(int j=0;j<Ny;j++) {
-				lattice[i+j*Ny].x = 0;
-				lattice[i+j*Ny].y = 0;
-				lattice[i+j*Ny].z = 1;
+				lattice[i+j*Nx].x = 0;
+				lattice[i+j*Nx].y = 0;
+				lattice[i+j*Nx].z = 1;
 			}	
 		}
 	}
@@ -44,9 +44,9 @@ void Lattice::initialise_lattice(std::string s) {
 	
 	for(int i=0;i<Nx;i++) {
           for(int j=0;j<Ny;j++) {
-                  lattice[i+j*Ny].x = randomNumber(-1,1);
-                  lattice[i+j*Ny].y = randomNumber(-1,1);
-                  lattice[i+j*Ny].z = randomNumber(-1,1);
+                  lattice[i+j*Nx].x = randomNumber(-1,1);
+                  lattice[i+j*Nx].y = randomNumber(-1,1);
+                  lattice[i+j*Nx].z = randomNumber(-1,1);
               }
           }
 	}
@@ -57,14 +57,14 @@ void Lattice::initialise_lattice(std::string s) {
 	double random=randomNumber(0,1);
 	for(int i=0;i<Nx;i++) {
           for(int j=0;j<Ny;j++) {
-                  lattice[i+j*Ny].x = 0; 
-                  lattice[i+j*Ny].y = 0; 
+                  lattice[i+j*Nx].x = 0; 
+                  lattice[i+j*Nx].y = 0; 
                   random=randomNumber(0,1);
 				if(random>=0.5){
-					lattice[i+j*Ny].z = 1;
+					lattice[i+j*Nx].z = 1;
 				}
                   else{
-                  lattice[i+j*Ny].z = -1;
+                  lattice[i+j*Nx].z = -1;
                 	}
                   }
               }
@@ -92,6 +92,8 @@ output.close();
 void Lattice::Equilibrate(int stepsPerSite, double T) {
 E_total=total_Energy();
 P_total=total_Polarisation();
+std::cout << "Initial lattice E = " << E_total
+        << "\n Initial lattice P = " << P_total << std::endl;
 //Open data file to store equilibration stats.
 std::ofstream output;
 output.open("EquilibrationStats_"+std::to_string((int)T)+"K.dat");
@@ -185,7 +187,7 @@ else if(dE<=0) {
 double Lattice::deltaE(int x, int y) {
 //Calc current energy and dipole
 double E_beforeFlip=site_Energy(x,y);
-double E_beforeTEST=total_Energy();
+//double E_beforeTEST=total_Energy();
 
 dipole p_old = lattice[x+y*Nx];
 
@@ -199,15 +201,25 @@ p_new.z= -p_old.z; //Ising so can only flip.
 lattice[x+y*Nx]=p_new;
 //std::cout << "lattice (px,py,pz)= " << lattice[x+y*Nx+z*Nx*Ny].x << " " << lattice[x+y*Nx+z*Nx*Ny].y << " " << lattice[x+y*Nx+z*Nx*Ny].z << std::endl;
 double E_afterFlip=site_Energy(x,y);
-double E_afterTEST=total_Energy();
+//double E_afterTEST=total_Energy();
 //std::cout<< "Ediff = " << E_afterFlip-E_beforeFlip << std::endl;
 
 double dE=(E_afterFlip-E_beforeFlip);
 
-if(dE != (E_afterTEST-E_beforeTEST)) {
-std::cout<< "PROBLEM!!!\ndE=" << dE << "\nE_after-E_before=" 
-        << E_afterTEST-E_beforeTEST << std::endl;
-}
+/*if(dE != (E_afterTEST-E_beforeTEST)) {
+std::cout<< "\nPROBLEM!!! (x,y)="<<x<<", "<<y<<"\ndE=" << dE << "\nE_after-E_before=" 
+        << E_afterTEST-E_beforeTEST << "\ndP="<< p_new.z-p_old.z
+        << "\nP_new="<<p_new.x<<", "<<p_new.y<<", "<<p_new.z
+        << "\nP_old="<<p_old.x<<", "<<p_old.y<<", "<<p_old.z
+        << "\nlattice[x,y]="<<lattice[x+y*Nx].x<<", "<<lattice[x+y*Nx].y
+        <<", "<<lattice[x+y*Nx].z<<std::endl;
+
+std::cout<<"\n Surrounding lattice:\n"
+        << "    " << lattice[x+(y+1)*Nx].z << "    \n"
+        << lattice[x-1+y*Nx].z << "   "<< lattice[x+y*Nx].z << "   " << lattice[x+1+y*Nx].z <<"\n"
+        << "    " << lattice[x+(y-1)*Nx].z << "    \n" << std::endl;
+*          
+}*/
 //update global E variables, has no effect for 
 //equilibration, only needed for run.
 if (dE<=0) { //if move will definitely be accepted.
@@ -222,7 +234,7 @@ return dE;
 }
 
 double Lattice::site_Energy(int x, int y) {
-    double E=0.0;
+    double E=site_Hamiltonian(x,y); //need this as well.
     for (int i=-1;i<=1;i+=2) {
 	E += site_Hamiltonian(x+i,y);
 	}
