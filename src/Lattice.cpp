@@ -134,6 +134,7 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     E_av=0.0;
     Esqrd_av=0.0;
     P_av=0.0;
+    Psqrd_av=0.0;
     for (int j=0;j<=(nSamples);j++) {
     //We are in equilibrium so start running but updating the global
     //variables in the MC_step function. 
@@ -141,16 +142,20 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
         MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T);
     }
     //Have been updating the estimators, now average them;
+    //Not using continously updated estimators yet for checks ...
     E_av+=total_Energy();
     P_av+=total_Polarisation();
     Esqrd_av += total_Energy()*total_Energy(); //will use updated energy later, this is for checks first.
+    Psqrd_av += total_Polarisation()*total_Polarisation();
     //Cv=( (double)300/(0.025*T) )*( (double)300/(ensembleSize*0.025*T) )*(Esqrd_av-E_av*E_av);
     } //after all ensembles take average 
     //these are outputted in main.cpp loop.
     E_av=E_av/nSamples;
     P_av=P_av/nSamples;
     Esqrd_av=Esqrd_av/nSamples;
+    Psqrd_av=Psqrd_av/nSamples;
     Cv=(Esqrd_av-E_av*E_av)/(kB*T*T);
+    Chi=(Psqrd_av-P_av*P_av)/(kB*T);
 }
 //Lattice member func, performs MC step on x,y,z coordinate dipole
 void Lattice::MC_Step(int x, int y, double T) {

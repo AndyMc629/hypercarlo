@@ -44,7 +44,7 @@ std::mt19937 rng{static_cast<std::mt19937>(std::chrono::high_resolution_clock::n
 Lattice lattice=Lattice(Nx,Ny,rng);
 
 //Initialise the lattice to FERRO or PARA_ISING for Ising model.
-lattice.initialise_lattice("PARA_ISING");
+lattice.initialise_lattice("FERRO");
 //output initial lattice.
 lattice.output_lattice("InitialState.dat");
 
@@ -67,7 +67,7 @@ mainOutput << "# Run began:" << dt << "\n"
            << "# ensemble_size = " << ensemble_size << "\n#\n";
 mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv\n"; 
 
-for (int T=2000;T>=1000;T=T-50) {
+for (int T=1000;T<=2000;T=T+50) {
 temp=(double)T;
 // //randomise
 //lattice.initialise_lattice("FERRO");
