@@ -104,11 +104,9 @@ to produce the new Hamiltonian
 which for a suitable choice of $\vec{D}$ can be used to model Chiral Helimagnetic Systems such as MnSi.
 
 If the user wishes to simulate a lattice of electrostatically interacting dipoles, as may be relevant for ferroelectric materials, they can select a serious of dipole based terms including the dipole-dipole electrostatic interaction for site $i$
-
 \begin{equation}
 \mathcal{H}_i = \sum_j \left( \frac{ \vec{p}_i\cdot\vec{p}_j-3 (\vec{p}_i\cdot\hat{r}_{ij}) (\vec{p}_j\cdot\hat{r}_{ij}))}{ r_{ij}^3} \right)
 \end{equation}
-
 In this case an Ewald summation is used in order to efficiently calculate this sum.
 
 There is also the possibility to study relaxor ferroelectrics by selecting a Hamiltonian of the form
@@ -171,45 +169,18 @@ The basic outline of how the program should be used in order to calculate releva
 \label{workflow}
 \end{centering}
 \end{figure*}
+
+\section{Timing Information}
+This section is to keep me right as I progress with development. See table~\ref{Tab:timing} for some example timing information.
+\begin{table*}
+\begin{tabular}{| c | c | c | c | c | c | c|} \hline
+Date & $(T_{min}, T_{max}, \Delta T)$ & $(E_{min}, E_{max},\Delta E)$ & sampleDistance (MCS) & nSamples & equilStepsPerSite (MCS) &Time (mins) \\ \hline
+13/1/2017 & (1000,2000,50) K & N/A & 150 & 1000 & 10000 & 170 for 70\% \\ \hline
+\label{Tab:timing}
+\end{tabular}
+\end{table*}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{thebibliography}{53}%
-
-\bibitem{Lao}
-Laosiritaworn, Yongyut
-Kanchiang, Kanokwan
-Yimnirun, Rattikorn
-Guo, Ruyan
-Bhalla, Amar S,
-Ferroelectrics, , 382:28?35, 2009
-
-\bibitem{nonCentro}
-X. Zhu, N. Mercier, A. Riou, P. Blanchard, P. Fr\'{e}re, 
-Chem. Commun., 2160-2161 (2002).
-
-\bibitem{VASP1}
- G. Kresse and J. Haffner, Phys. Rev. B {\bf 47}, 558 (1993).
-
-\bibitem{VASP2}
- G. Kresse and J. Furthm\"{u}ller, Computational Materials
-Science {\bf 6}, 15 (1996).
-
-%\bibitem{PBEsol}
-%J. P. Perdew, A. Ruzsinszky, G. I. Csonka, O. A. Vydrov,
-%G. E. Scuseria, L. A. Constantin, X. Zhou, and K. Burke,
-%Phys. Rev. Lett. {\bf 100}, 136406 (2008).
-
-%\bibitem{PAW}
-%P. E. Bl\"{o}chl, Physical Review B {\bf 50}, 17953 (1994).
-
-\bibitem{Amplimodes1}
- D. Orobengoa, C. Capillas, M. I. Aroyo, and J. M. Perez-
-Mato, J. App. Cryst. {\bf 42}, 820 (2009)
-
-\bibitem{Amplimodes2}
- J. Perez-Mato, D. Orobengoa, and M. Aroyo, Acta Cryst. A {\bf 66}, 558 (2010).
-
-
-\end{thebibliography}
 
 
 \end{document}
