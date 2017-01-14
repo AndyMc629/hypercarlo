@@ -34,7 +34,7 @@ int main() {
  * will do this from a config file eventually. 
  ****************************/    
 //Set size of lattice
-int Nx=20,Ny=20;//Nx=40,Ny=40;
+int Nx=40,Ny=40;//Nx=40,Ny=40;
 //Seed a Mersenne Twister random number generator with current time.
 std::mt19937 rng{static_cast<std::mt19937>(std::chrono::high_resolution_clock::now().time_since_epoch().count())};
 
@@ -52,7 +52,7 @@ int T_min=1000; //K
 int T_max=2000; //K
 int dT=50; //K
 int equilStepsPerSite=10000;//100000;//10000;
-int ensemble_size=1000;
+int ensemble_size=10000;
 
 std::ofstream mainOutput;
 mainOutput.open("Output.dat");
@@ -80,7 +80,7 @@ lattice.Equilibrate(equilStepsPerSite,temp);
 std::string equilFile="Lattice_equil_" + std::to_string(equilStepsPerSite)+"_stepsPerSite_"+std::to_string((int)T)+"K.dat";
 lattice.output_lattice(equilFile);
 //calc estimators
-lattice.Run(150, ensemble_size,temp);
+lattice.Run(1000, ensemble_size,temp);
 
 std::cout << "T="<<T<<"K:\n"
 << "E_av="<<lattice.E_av << "\n"
