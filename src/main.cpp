@@ -31,13 +31,11 @@ int main() {
 
  /*************************** 
  * SET UP THE RUN PARAMETERS 
+ * will do this from a config file eventually. 
  ****************************/    
 //Set size of lattice
-int Nx=40,Ny=40;
-//Seed a Mersenne Twister random number generator.
-//below version works on linux machine.
-//std::mt19937 rng{std::chrono::high_resolution_clock::now().time_since_epoch().count()};
-//attempt to make it work on macbook.
+int Nx=20,Ny=20;//Nx=40,Ny=40;
+//Seed a Mersenne Twister random number generator with current time.
 std::mt19937 rng{static_cast<std::mt19937>(std::chrono::high_resolution_clock::now().time_since_epoch().count())};
 
 //Initialise a lattice object.
@@ -50,6 +48,9 @@ lattice.output_lattice("InitialState.dat");
 
 //equilibrate lattice at temp T.
 double temp; //K
+int T_min=1000; //K
+int T_max=2000; //K
+int dT=50; //K
 int equilStepsPerSite=10000;//100000;//10000;
 int ensemble_size=1000;
 
@@ -62,14 +63,16 @@ time_t now = time(0);
 char* dt = ctime(&now);
 
 mainOutput << "# Run began:" << dt << "\n" 
-           << "# Key run parameters:\n" 
+           << "# Key run parameters:\n"
+           << "# Nx Ny = "<<Nx << " "<<Ny<< "\n"
+           << "# (T_min,T_max,dT) = ("<<T_min<<", "<<T_max<<", "<<dT<<")\n"
            << "# equilStepsPerSite = " << equilStepsPerSite << "\n"
            << "# ensemble_size = " << ensemble_size << "\n#\n";
-mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv\n"; 
+mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv Chi\n"; 
 
-for (int T=1000;T<=2000;T=T+50) {
+for (int T=T_min;T<=T_max;T=T+dT) {
 temp=(double)T;
-// //randomise
+//If you want to re-initialise at each temp (bad idea generally).
 //lattice.initialise_lattice("FERRO");
 //equilibrate
 lattice.Equilibrate(equilStepsPerSite,temp);
@@ -85,7 +88,8 @@ std::cout << "T="<<T<<"K:\n"
 << "Accepted="<<lattice.Accepted<<" , Rejected="<<lattice.Rejected<< "\n\n";
 
 mainOutput << T << " " << lattice.E_av << " " << lattice.Esqrd_av << " "
-<<lattice.P_av<< " " << lattice.Psqrd_av << " " << lattice.Cv << "\n";
+<<lattice.P_av<< " " << lattice.Psqrd_av << " " << lattice.Cv 
+<< " " << lattice.Chi<<"\n";
 
 }
 mainOutput.close();

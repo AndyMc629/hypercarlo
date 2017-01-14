@@ -154,8 +154,8 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     P_av=P_av/nSamples;
     Esqrd_av=Esqrd_av/nSamples;
     Psqrd_av=Psqrd_av/nSamples;
-    Cv=(Esqrd_av-E_av*E_av)/(kB*T*T);
-    Chi=(Psqrd_av-P_av*P_av)/(kB*T);
+    Cv=(Esqrd_av-E_av*E_av)/(Vol()*kB*T*T);
+    Chi=Vol()*(Psqrd_av-P_av*P_av)/(kB*T);
 }
 //Lattice member func, performs MC step on x,y,z coordinate dipole
 void Lattice::MC_Step(int x, int y, double T) {
@@ -177,8 +177,8 @@ if (dE>0) {
 		}
 	else { //if move was accepted anyway update.
             Accepted++;
-            E_total+=dE;
-            Esqrd += dE*dE; 
+            E_total+=dE/Vol();
+            Esqrd += (dE*dE)/(Vol()*Vol()); 
             P_total += 2*lattice[x+y*Nx].z/Vol(); 
             Psqrd += (2*lattice[x+y*Nx].z*2*lattice[x+y*Nx].z)/(Vol()*Vol());
         }
@@ -198,8 +198,8 @@ double Lattice::deltaE(int x, int y) {
 double E_beforeFlip=site_Energy(x,y);
 //double E_beforeTEST=total_Energy();
 
+//store current dipole value
 dipole p_old = lattice[x+y*Nx];
-
 //generate new trial dipole direction.
 dipole p_new;
 p_new.x=0; //Ising so only z component.
@@ -232,8 +232,8 @@ std::cout<<"\n Surrounding lattice:\n"
 //update global E variables, has no effect for 
 //equilibration, only needed for run.
 if (dE<=0) { //if move will definitely be accepted.
-	E_total += dE;
-	Esqrd += dE*dE; 
+	E_total += dE/Vol();
+	Esqrd += (dE*dE)/(Vol()*Vol()); 
 	P_total += 2*p_new.z/Vol(); //dP = 2s_new (see MC books e.g Newman and Barkema)
 	Psqrd += (2*p_new.z*2*p_new.z)/(Vol()*Vol());
 	} 
@@ -276,7 +276,7 @@ double E=0.0;
                 E+=site_Hamiltonian(i,j); 
           }
         }      
-return E;
+return E/Vol();
 }
 //Calc. total polarisation of lattice.
 //Choice of words not sacrosanct, this also
