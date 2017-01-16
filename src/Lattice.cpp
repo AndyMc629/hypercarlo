@@ -4,6 +4,7 @@
 #include "Constants.h" //constants like pi,kB etc.
 #include<cmath>
 #include "mathsFuncs.h" //for correct modulo function etc...
+#include <omp.h> // for parallelisation
 using namespace Constants; //constants like pi.
 
 std::mt19937 m_rng; //forward declaring m_rng? does this make it work?
@@ -167,7 +168,7 @@ void Lattice::MC_Step_Ising(int x, int y, double T){
     dipole p = get_dipole(x,y);
     double pz_current=p.z;
     //double beta=300/(0.025*T);
-    
+#pragma omp parallel for
     for (int i=-1;i<=1;i+=2) {
 	 p=get_dipole(x+i,y);
          sum += p.z;
