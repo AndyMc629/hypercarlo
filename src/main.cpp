@@ -34,7 +34,7 @@ int main() {
  * will do this from a config file eventually. 
  ****************************/    
 //Set size of lattice
-int Nx=40,Ny=40;//Nx=40,Ny=40;
+int Nx=10,Ny=10;//Nx=40,Ny=40;
 //Seed a Mersenne Twister random number generator with current time.
 std::mt19937 rng{static_cast<std::mt19937>(std::chrono::high_resolution_clock::now().time_since_epoch().count())};
 
@@ -47,12 +47,13 @@ lattice.initialise_lattice("FERRO");
 lattice.output_lattice("InitialState.dat");
 
 //equilibrate lattice at temp T.
-double temp; //K
-int T_min=1000; //K
-int T_max=2000; //K
-int dT=50; //K
-int equilStepsPerSite=10000;//100000;//10000;
-int ensemble_size=10000;
+//double temp; //K
+double T_min=0.2;//1000; //K
+double T_max=5.0;//2000; //K
+double dT=0.2; //K
+int T_counter=int((T_max-T_min)/dT);
+int equilStepsPerSite=2000;//10000;//100000;//10000;
+int ensemble_size=1000000;
 
 std::ofstream mainOutput;
 mainOutput.open("Output.dat");
@@ -70,17 +71,19 @@ mainOutput << "# Run began:" << dt << "\n"
            << "# ensemble_size = " << ensemble_size << "\n#\n";
 mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv Chi\n"; 
 
-for (int T=T_min;T<=T_max;T=T+dT) {
-temp=(double)T;
+//for (int T=T_min;T<=T_max;T=T+dT) {
+for (int i=0; i<=T_counter;i++) {
+double T=(i*dT)+T_min;
+
 //If you want to re-initialise at each temp (bad idea generally).
 //lattice.initialise_lattice("FERRO");
 //equilibrate
-lattice.Equilibrate(equilStepsPerSite,temp);
+lattice.Equilibrate(equilStepsPerSite,T);
 //output equilibrated lattice.
-std::string equilFile="Lattice_equil_" + std::to_string(equilStepsPerSite)+"_stepsPerSite_"+std::to_string((int)T)+"K.dat";
+std::string equilFile="Lattice_equil_" + std::to_string(equilStepsPerSite)+"_stepsPerSite_"+std::to_string(T)+"K.dat";
 lattice.output_lattice(equilFile);
 //calc estimators
-lattice.Run(1000, ensemble_size,temp);
+lattice.Run(1, ensemble_size,T);
 
 std::cout << "T="<<T<<"K:\n"
 << "E_av="<<lattice.E_av << "\n"
