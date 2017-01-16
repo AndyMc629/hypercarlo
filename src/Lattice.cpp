@@ -136,24 +136,32 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     Esqrd_av=0.0;
     P_av=0.0;
     Psqrd_av=0.0;
+   
+     //clock_t begin = clock();
+     //#pragma omp parallel for
     for (int j=0;j<=(nSamples);j++) {
     //We are in equilibrium so start running but updating the global
-    //variables in the MC_step function. 
+    //variables in the MC_step function.
+      
     for (int i=0;i<=(sampleDistance*Vol());i++) {
         //int acts like floor for numbers > 0 (but is ~x3 faster).
         //std::cout << int(randomNumber(0,Nx)) << std::endl;
         MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T);
         //MC_Step_Ising(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T);
     }
+       
     //runOutput<<
     //Have been updating the estimators, now average them;
     //Not using continously updated estimators yet for checks ...
-    E_av+=total_Energy();
-    P_av+=total_Polarisation();
-    Esqrd_av += total_Energy()*total_Energy(); //will use updated energy later, this is for checks first.
-    Psqrd_av += total_Polarisation()*total_Polarisation();
+    E_av+=E_total;//total_Energy();
+    P_av+=P_total;//total_Polarisation();
+    Esqrd_av += E_total*E_total;//total_Energy()*total_Energy(); //will use updated energy later, this is for checks first.
+    Psqrd_av += P_total*P_total;//total_Polarisation()*total_Polarisation();
     } //after nSamples take the average 
     //these are outputted in main.cpp loop.
+    //clock_t end=clock();
+    //double elapsed_secs = double(end - begin)/CLOCKS_PER_SEC;
+    //std::cout<<"loop_time="<<elapsed_secs<<" secs\n";
     E_av=1.0*E_av/nSamples;
     P_av=1.0*P_av/nSamples;
     Esqrd_av=Esqrd_av/nSamples;
@@ -168,7 +176,7 @@ void Lattice::MC_Step_Ising(int x, int y, double T){
     dipole p = get_dipole(x,y);
     double pz_current=p.z;
     //double beta=300/(0.025*T);
-#pragma omp parallel for
+    
     for (int i=-1;i<=1;i+=2) {
 	 p=get_dipole(x+i,y);
          sum += p.z;
@@ -177,6 +185,7 @@ void Lattice::MC_Step_Ising(int x, int y, double T){
 	 p=get_dipole(x,y+j);
          sum += p.z;
 	}
+    
     /* Calc change in energy */
     double delta=2*J*sum*pz_current;
     if (delta<=0) {

@@ -28,13 +28,13 @@ Run simulation on lattice, gather statistics --> Calculate averages --> Output a
 //using namespace std;
 
 int main() {
-
+#pragma omp omp_set_num_threads( 4 )
  /*************************** 
  * SET UP THE RUN PARAMETERS 
  * will do this from a config file eventually. 
  ****************************/    
 //Set size of lattice
-int Nx=10,Ny=10;//Nx=40,Ny=40;
+int Nx=5,Ny=5;//Nx=40,Ny=40;
 //Seed a Mersenne Twister random number generator with current time.
 std::mt19937 rng{static_cast<std::mt19937>(std::chrono::high_resolution_clock::now().time_since_epoch().count())};
 
@@ -52,7 +52,7 @@ double T_min=0.2;//1000; //K
 double T_max=5.0;//2000; //K
 double dT=0.2; //K
 int T_counter=int((T_max-T_min)/dT);
-int equilStepsPerSite=2000;//10000;//100000;//10000;
+int equilStepsPerSite=2000;
 int ensemble_size=1000000;
 
 std::ofstream mainOutput;
@@ -61,7 +61,7 @@ mainOutput.open("Output.dat");
 // current date/time based on current system
 time_t now = time(0);
 // convert now to string form
-char* dt = ctime(&now);
+char* dt = ctime(&now); // have I used these anywhere?
 
 mainOutput << "# Run began:" << dt << "\n" 
            << "# Key run parameters:\n"
