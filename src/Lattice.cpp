@@ -328,6 +328,8 @@ double Lattice::site_Hamiltonian(int x, int y) {
         for (int i=-r_cut;i<=r_cut;i++) {
             for(int j=-r_cut;j<=r_cut;j++) {
                 if(i==0 && j==0) continue; //or we'll get Nan's.
+                //went outside of interaction range.
+                if((i*i+j*j)>r_cut*r_cut) continue; 
                 pj=get_dipole(x+i,y+j);
                 rij=sqrt(i*i+j*j);
                 //std::cout<<rij<<std::endl;
