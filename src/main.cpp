@@ -36,10 +36,10 @@ int main() {
 //Set size of lattice
 int Nx=5,Ny=5;//Nx=40,Ny=40;
 
-//Initialise a lattice object.
-//Lattice lattice=Lattice(Nx,Ny,rng);
+//Initialise a lattice object and choose model.
+std::string Model="DIPOLE-DIPOLE";
 //Lattice lattice=Lattice(Nx,Ny, "ISING");
-Lattice lattice=Lattice(Nx,Ny, "DIPOLE-DIPOLE");
+Lattice lattice=Lattice(Nx,Ny, Model);
 
 //Initialise the lattice to FERRO or PARA_ISING for Ising model.
 lattice.initialise_lattice("FERRO");
@@ -53,7 +53,7 @@ double T_max=5.0;//2000; //K
 double dT=0.2; //K
 int T_counter=int((T_max-T_min)/dT);
 int equilStepsPerSite=2000;//10000;//100000;//10000;
-int ensemble_size=18000;//1000000;
+int ensemble_size=1000000;//18000
 
 std::ofstream mainOutput;
 mainOutput.open("Output.dat");
@@ -66,6 +66,7 @@ char* dt = ctime(&now);
 mainOutput << "# Run began:" << dt << "\n" 
            << "# Key run parameters:\n"
            << "# Nx Ny = "<<Nx << " "<<Ny<< "\n"
+           << "# model = "<<Model<<"\n"
            << "# (T_min,T_max,dT) = ("<<T_min<<", "<<T_max<<", "<<dT<<")\n"
            << "# equilStepsPerSite = " << equilStepsPerSite << "\n"
            << "# ensemble_size = " << ensemble_size << "\n#\n";

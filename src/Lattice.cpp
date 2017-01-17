@@ -151,7 +151,6 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     //variables in the MC_step function. 
     for (int i=0;i<=(sampleDistance*Vol());i++) {
         //int acts like floor for numbers > 0 (but is ~x3 faster).
-        //std::cout << int(randomNumber(0,Nx)) << std::endl;
         MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T);
         //MC_Step_Ising(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T);
     }
@@ -205,21 +204,19 @@ Then propose random new dipole, calc change in energy for that new config
 relative to old config, accept or reject new dipole.*/
 //Note: see paper http://csml.northwestern.edu/resources/Preprints/mclr.pdf
 
-//Propose new dipole direction
-//Ising for now
-//dipole p_old = lattice[x+y*Nx]; //not useful for Ising but will be later.
+//Save current dipole direction
+dipole p_old = lattice[x+y*Nx]; //not useful for Ising but will be later.
 //generate new trial dipole direction.
-dipole p_new;
-p_new.x=0; //Ising so only z component.
-p_new.y=0; //Ising so only z component.
-p_new.z= -lattice[x+y*Nx].z; //Ising so can only flip.
-double dE=deltaE(x,y, p_new); //energy of change if we flip dipole at (x,y).
-//need a smarter way to do this in more advanced models ...
+dipole p_new = move(x,y);
+//energy of change if we flip dipole at (x,y).
+double dE=deltaE(x,y, p_new); 
+
 //If energy change is positive need Boltzmann factor vs rand number
 if (dE>0) {
 	if (exp(-dE/T)<randomNumber(0,1)) { //i.e if boltz loses, reject change.
                 Rejected++;
-                lattice[x+y*Nx].z=-lattice[x+y*Nx].z; //reverting to old
+                lattice[x+y*Nx]=p_old;
+                //lattice[x+y*Nx].z=-lattice[x+y*Nx].z; //reverting to old
                  //change already occurred in deltaE().
 		}
 	else { //if move was accepted anyway update variables and keep change.
@@ -236,6 +233,7 @@ else if(dE<=0) {
     Accepted++;
     E_total += dE/Vol();
     Esqrd += (dE*dE)/(Vol()*Vol()); 
+    //below are wrong for non-Ising z-models.
     P_total += 2*p_new.z/Vol(); //dP = 2s_new (see MC books e.g Newman and Barkema)
     Psqrd += (2*p_new.z*2*p_new.z)/(Vol()*Vol());
 } 
@@ -274,6 +272,25 @@ std::cout<<"\n Surrounding lattice:\n"
 return dE;
 }
 
+Lattice::dipole Lattice::move(int x,int y) { //move dipole at 
+    dipole p;
+    if(model.compare("ISING")==0){
+        p.x=lattice[x+y*Nx].x; //Ising so only z component.
+        p.y=lattice[x+y*Ny].y; //Ising so only z component.
+        p.z= -lattice[x+y*Nx].z; //Ising so can only flip.
+    }
+    if(model.compare("DIPOLE-DIPOLE")==0){
+        //first just move in any direction, pi flips etc allowed.
+        //list of triplets of the directions. Perhaps define externally when
+        //I allow more directions.
+        int dirs[18] = {-1,0,0, 1,0,0, 0,-1,0, 0,1,0, 0,0,1, 0,0,-1};
+        int dir=int(randomNumber(0,6));
+        p.x=dirs[dir*3]; //6 directions, each with x coordinates.
+        p.y=dirs[dir*3+1];  
+        p.z=dirs[dir*3+2]; 
+    }
+    return p;
+}
 /* This function is key for the different models*/
 double Lattice::site_Energy(int x, int y) {
     double E=site_Hamiltonian(x,y); //need this as well.

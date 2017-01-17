@@ -25,6 +25,7 @@ public:
     std::vector<dipole> lattice;	
     //get the dipole at xyz.
     dipole get_dipole(int,int);
+    dipole move(int,int);
     /*initialisation state dependent on string
      *  string can have values:
      * 	FERRO = ferro arrangement 1,0,0 or something
