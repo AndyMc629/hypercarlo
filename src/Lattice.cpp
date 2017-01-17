@@ -101,24 +101,27 @@ output.close();
 
 //Lattice member func, equilibrate for stepsPerSite MCSweeps.
 void Lattice::Equilibrate(int stepsPerSite, double T) {
+//initialise the global var's.
 E_total=total_Energy();
 P_total=total_Polarisation();
-std::cout << "Initial lattice E = " << E_total
-        << "\n Initial lattice P = " << P_total << std::endl;
+P_total.norm=dot_dipole(P_total,P_total);
+std::cout << "Initial lattice E = " << E_total << "\n"
+          << "Initial lattice P = (" 
+          << P_total.x <<","<<P_total.y<<","<<P_total.z<<")\n";
 //Open data file to store equilibration stats.
 std::ofstream output;
 output.open("EquilibrationStats_"+std::to_string(T)+"K.dat");
 output << "#Equilibrated stats.\n"
-		<< "#kT/J MCS E_tot/site E_tot(global)/site P_tot/site\n";   
+        << "#kT/J MCS E_tot/site E_tot(global)/site P_tot/site\n";   
 
 for (int i=0;i<=(stepsPerSite*Vol());i++) {	
         MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T); 
         //MC_Step_Ising(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T); 
 	
-	if(  (i%(stepsPerSite*Vol()/10))==0 ){ //every 10% output to terminal		 
+	if(  (i%(stepsPerSite*Vol()/10))==0 ){ //every 10% output to terminal
 		std::cout << ((double)i/Vol()) << " steps/site: E/vol = " 
 		<< total_Energy() << ", " << E_total << ", P/vol = " 
-                << total_Polarisation() << ", " << P_total << std::endl;
+                << total_Polarisation() << ", " << P_total.norm << std::endl;
 	}
         if(  (i%(stepsPerSite*Vol()/100))==0 ){ //every 1% output to file
             output <<(0.025*T)/(J*(double)300)<<" "<<(double)i/(Vol())<< " " 
@@ -136,7 +139,7 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     E_total=total_Energy();
     Esqrd=E_total*E_total;
     P_total=total_Polarisation();
-    Psqrd=P_total*P_total;
+    Psqrd=P_total.norm*P_total.norm;
     
     //open output file;
     std::ofstream runOutput;
@@ -223,8 +226,10 @@ if (dE>0) {
             Accepted++;
             E_total+=dE/Vol();
             Esqrd += (dE*dE)/(Vol()*Vol()); 
-            P_total += 2*lattice[x+y*Nx].z/Vol(); 
-            Psqrd += (2*lattice[x+y*Nx].z*2*lattice[x+y*Nx].z)/(Vol()*Vol());
+            P_total.x+=lattice[x+y*Nx].x/Vol();
+            P_total.y+=lattice[x+y*Nx].y/Vol();
+            P_total.z+=lattice[x+y*Nx].z/Vol();
+            Psqrd += P_total.norm*P_total.norm;
         }
 }
 else if(dE<=0) {
@@ -234,8 +239,10 @@ else if(dE<=0) {
     E_total += dE/Vol();
     Esqrd += (dE*dE)/(Vol()*Vol()); 
     //below are wrong for non-Ising z-models.
-    P_total += 2*p_new.z/Vol(); //dP = 2s_new (see MC books e.g Newman and Barkema)
-    Psqrd += (2*p_new.z*2*p_new.z)/(Vol()*Vol());
+    P_total.x+=lattice[x+y*Nx].x/Vol();
+    P_total.y+=lattice[x+y*Nx].y/Vol();
+    P_total.z+=lattice[x+y*Nx].z/Vol();
+    Psqrd += P_total.norm*P_total.norm;
 } 
 }//end of MC_Step.
 
@@ -353,7 +360,7 @@ return E/Vol();
 //Calc. total polarisation of lattice.
 //Choice of words not sacrosanct, this also
 //refers to the magnetisation for spin simulations.
-double Lattice::total_Polarisation(){
+Lattice::dipole Lattice::total_Polarisation(){
 //vector to store net pol.
 dipole P_net;P_net.x=0.0;P_net.y=0.0;P_net.z=0.0;
 	for(int i=0;i<Nx;i++) {
@@ -363,8 +370,9 @@ dipole P_net;P_net.x=0.0;P_net.y=0.0;P_net.z=0.0;
 					P_net.z += lattice[i+j*Nx].z;	
 			}
 		}
-double P_net_mag=sqrt(dot_dipole(P_net,P_net));
-return P_net_mag/Vol();
+//double P_net_mag=sqrt(dot_dipole(P_net,P_net));
+P_net.x*=P_net.x/Vol(); P_net.y*=P_net.y/Vol(); P_net.z*=P_net.z/Vol();
+return P_net;
 }
 double Lattice::dot_dipole(Lattice::dipole p1, Lattice::dipole p2){
 double dot=p1.x*p2.x+p1.y*p2.y+p1.z*p2.z;
