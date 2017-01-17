@@ -34,13 +34,11 @@ int main() {
  * will do this from a config file eventually. 
  ****************************/    
 //Set size of lattice
-int Nx=10,Ny=10;//Nx=40,Ny=40;
-//Seed a Mersenne Twister random number generator with current time.
-std::mt19937 rng{static_cast<std::mt19937>(std::chrono::high_resolution_clock::now().time_since_epoch().count())};
+int Nx=5,Ny=5;//Nx=40,Ny=40;
 
 //Initialise a lattice object.
-Lattice lattice=Lattice(Nx,Ny,rng);
-
+//Lattice lattice=Lattice(Nx,Ny,rng);
+Lattice lattice=Lattice(Nx,Ny);
 //Initialise the lattice to FERRO or PARA_ISING for Ising model.
 lattice.initialise_lattice("FERRO");
 //output initial lattice.
@@ -53,7 +51,7 @@ double T_max=5.0;//2000; //K
 double dT=0.2; //K
 int T_counter=int((T_max-T_min)/dT);
 int equilStepsPerSite=2000;//10000;//100000;//10000;
-int ensemble_size=1000000;
+int ensemble_size=18000;//1000000;
 
 std::ofstream mainOutput;
 mainOutput.open("Output.dat");

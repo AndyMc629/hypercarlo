@@ -1,3 +1,7 @@
+/* Source code for the 'Lattice' class, which contains main bulk of run 
+ * functions.
+ */
+
 #include "Lattice.h"
 #include<fstream>
 #include<random> //for MT algorithm.
@@ -6,11 +10,17 @@
 #include "mathsFuncs.h" //for correct modulo function etc...
 using namespace Constants; //constants like pi.
 
-std::mt19937 m_rng; //forward declaring m_rng? does this make it work?
+//Seed a Mersenne Twister random number generator with current time.
+//std::mt19937 m_rng; //forward declaring m_rng? does this make it work?
 
 //Lattice constructor
-Lattice::Lattice(int a, int b, std::mt19937& rng) : Nx(a),Ny(b),m_rng(rng),lattice(a*b) 
-{}    
+//Lattice::Lattice(int a, int b, std::mt19937& rng) : Nx(a),Ny(b),m_rng(rng),lattice(a*b) 
+Lattice::Lattice(int a, int b) : Nx(a),Ny(b),lattice(a*b)
+{ 
+    std::cout << "A lattice object of size "<<Nx<<" x "<<Ny
+        <<" has been initialised\n";
+}    
+
 //Lattice destructor
 Lattice::~Lattice() {}
 //Lattice member func, get volume
@@ -128,9 +138,9 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     Psqrd=P_total*P_total;
     
     //open output file;
-    //std::ofstream runOutput;
-    //runOutput.open("RunStats_"+std::to_string((int)T)+"K.dat");
-    //runOutput<<"#n E Esqrd P Psqrd\n";
+    std::ofstream runOutput;
+    runOutput.open("RunStats_"+std::to_string((int)T)+"K.dat");
+    runOutput<<"#MCS E Esqrd E_av Esqrd_av P Psqrd P_sqrd_av\n";
     E_av=0.0;
     Esqrd_av=0.0;
     P_av=0.0;
