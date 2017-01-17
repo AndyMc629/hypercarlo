@@ -4,11 +4,14 @@
 #include<string>
 #include<iostream>
 #include<random>
+
 class Lattice {
+    //friend class Model;
 public:
     //Initialise a lattice/lattice constructor 
     //Lattice (int,int,std::mt19937&);
-    Lattice(int,int);
+    Lattice(int,int, std::string);
+    Lattice();
     //Lattice destructor
     ~Lattice();
     //Grabs volume of lattice/crystal.
@@ -52,8 +55,10 @@ private:
     //sizes of crystal
     int Nx,Ny;
     double J=1.0;//J=0.025;
+    int r_cut=1; //cut off for dipole-dipole interaction
     //seed Mersenne Twister algorithm.
     std::mt19937 m_rng{static_cast<std::mt19937>(std::chrono::high_resolution_clock::now().time_since_epoch().count())};
+    std::string model;
 };
 
 #endif

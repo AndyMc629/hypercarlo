@@ -38,7 +38,9 @@ int Nx=5,Ny=5;//Nx=40,Ny=40;
 
 //Initialise a lattice object.
 //Lattice lattice=Lattice(Nx,Ny,rng);
-Lattice lattice=Lattice(Nx,Ny);
+//Lattice lattice=Lattice(Nx,Ny, "ISING");
+Lattice lattice=Lattice(Nx,Ny, "DIPOLE-DIPOLE");
+
 //Initialise the lattice to FERRO or PARA_ISING for Ising model.
 lattice.initialise_lattice("FERRO");
 //output initial lattice.

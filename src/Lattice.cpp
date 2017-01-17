@@ -15,12 +15,13 @@ using namespace Constants; //constants like pi.
 
 //Lattice constructor
 //Lattice::Lattice(int a, int b, std::mt19937& rng) : Nx(a),Ny(b),m_rng(rng),lattice(a*b) 
-Lattice::Lattice(int a, int b) : Nx(a),Ny(b),lattice(a*b)
+Lattice::Lattice(int a, int b, std::string modelName) : Nx(a),Ny(b),model(modelName),lattice(a*b)
 { 
     std::cout << "A lattice object of size "<<Nx<<" x "<<Ny
         <<" has been initialised\n";
 }    
-
+//Lattice default constructor
+Lattice::Lattice() {}
 //Lattice destructor
 Lattice::~Lattice() {}
 //Lattice member func, get volume
@@ -273,6 +274,7 @@ std::cout<<"\n Surrounding lattice:\n"
 return dE;
 }
 
+/* This function is key for the different models*/
 double Lattice::site_Energy(int x, int y) {
     double E=site_Hamiltonian(x,y); //need this as well.
     for (int i=-1;i<=1;i+=2) {
@@ -291,13 +293,33 @@ double Lattice::site_Hamiltonian(int x, int y) {
 	//ISING
 	//must calc with three seperate loops so that we don't get
 	//next to nearest neighbours from (x+1,y+1,k+1)
-	double H=0.0;
-	for (int i=-1;i<=1;i+=2) {
-	H += -J*dot_dipole(get_dipole(x,y),get_dipole(x+i,y));
+    double H=0.0;
+    dipole pi = get_dipole(x,y);
+    dipole pj;
+    
+    if (model.compare("ISING")==0) {
+        for (int i=-1;i<=1;i+=2) {
+            H += -J*dot_dipole(pi,get_dipole(x+i,y));
 	}
 	for (int j=-1;j<=1;j+=2) {
-	H += -J*dot_dipole(get_dipole(x,y),get_dipole(x,y+j));		
+            H += -J*dot_dipole(pi,get_dipole(x,y+j));		
 	}
+    } //ISING ENERGY 
+    
+    if (model.compare("DIPOLE-DIPOLE")==0) {
+        double rij=0.0;
+        for (int i=-r_cut;i<=r_cut;i++) {
+            for(int j=-r_cut;j<=r_cut;j++) {
+                if(i==0 && j==0) continue; //or we'll get Nan's.
+                pj=get_dipole(x+i,y+j);
+                rij=sqrt(i*i+j*j);
+                //std::cout<<rij<<std::endl;
+                H += dot_dipole(pi,pj)/(rij*rij*rij);
+                //dot product manually to save casting (i,j) as vector
+                H -= (pi.x*i+pi.y*j)*(pj.x*i+pj.y*j)/(rij*rij*rij);
+            }
+        }      
+    } //DIPOLE-DIPOLE ENERGY
     return H;
 }
 double Lattice::total_Energy(){
