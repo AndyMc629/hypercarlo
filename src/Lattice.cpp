@@ -146,7 +146,7 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     
     //open output file;
     std::ofstream runOutput;
-    runOutput.open("RunStats_"+std::to_string((int)T)+"K.dat");
+    runOutput.open("RunStats_"+std::to_string(T)+"K.dat");
     runOutput<<"#MCS E Esqrd E_av Esqrd_av P Psqrd P_sqrd_av\n";
     E_av=0.0;
     Esqrd_av=0.0;
@@ -163,7 +163,7 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     //runOutput<<
     //Have been updating the estimators, now average them;
     //Not using continously updated estimators yet for checks ...
-    E_av+=total_Energy();
+    E_av+=E_total; // safe to do this now if needs checking return to total_Energy();
     P_av+=sqrt(dot_dipole(total_Polarisation(),total_Polarisation())); //two calls = horrendous!
     Esqrd_av += total_Energy()*total_Energy(); //will use updated energy later, this is for checks first.
     Psqrd_av += dot_dipole(total_Polarisation(),total_Polarisation());
@@ -175,6 +175,7 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     Psqrd_av=Psqrd_av/nSamples;
     Cv=(Esqrd_av-E_av*E_av)/(Vol()*kB*T*T);
     Chi=Vol()*(Psqrd_av-P_av*P_av)/(kB*T);
+    runOutput.close();
 }
 
 void Lattice::MC_Step_Ising(int x, int y, double T){
@@ -232,10 +233,10 @@ if (dE>0) {
 	else { //if move was accepted anyway update variables and keep change.
             Accepted++;
             E_total+=dE;///Vol();
-            Esqrd += (dE*dE)/(Vol()*Vol()); 
-            P_total.x+=lattice[x+y*Nx].x/Vol();
-            P_total.y+=lattice[x+y*Nx].y/Vol();
-            P_total.z+=lattice[x+y*Nx].z/Vol();
+            Esqrd += (dE*dE);///(Vol()*Vol()); 
+            P_total.x+=(p_new.x-p_old.x);//lattice[x+y*Nx].x;///Vol();
+            P_total.y+=(p_new.y-p_old.y);//lattice[x+y*Nx].y;///Vol();
+            P_total.z+=(p_new.z-p_old.z);//lattice[x+y*Nx].z;///Vol();
             P_total.norm=sqrt(dot_dipole(P_total,P_total));
             Psqrd += P_total.norm*P_total.norm;
         }
@@ -244,12 +245,12 @@ else if(dE<=0) {
 //do nothing to updated dipole (updated in deltaE), 
 // i.e accept the new move performed in deltaE(...).
     Accepted++;
-    E_total += dE;///Vol();
-    Esqrd += (dE*dE)/(Vol()*Vol()); 
+    E_total += dE;//Vol();
+    Esqrd += (dE*dE);///(Vol()*Vol()); //will divide by vol at end.
     //below are wrong for non-Ising z-models.
-    P_total.x+=lattice[x+y*Nx].x/Vol();
-    P_total.y+=lattice[x+y*Nx].y/Vol();
-    P_total.z+=lattice[x+y*Nx].z/Vol();
+    P_total.x+=(p_new.x-p_old.x);//lattice[x+y*Nx].x;///Vol(); // INCORRECT, NEED TO ADD THE CHANGE NOT THE VALUE!
+    P_total.y+=(p_new.y-p_old.y);//lattice[x+y*Nx].y;///Vol();
+    P_total.z+=(p_new.z-p_old.z);//lattice[x+y*Nx].z;///Vol();
     P_total.norm=sqrt(dot_dipole(P_total,P_total));
     Psqrd += P_total.norm*P_total.norm;
 } 
@@ -380,7 +381,8 @@ dipole P_net;P_net.x=0.0;P_net.y=0.0;P_net.z=0.0;
 			}
 		}
 //double P_net_mag=sqrt(dot_dipole(P_net,P_net));
-P_net.x*=P_net.x/Vol(); P_net.y*=P_net.y/Vol(); P_net.z*=P_net.z/Vol();
+//will divide by Vol() when outputting? same time as divisions take more time?
+//P_net.x*=P_net.x/Vol(); P_net.y*=P_net.y/Vol(); P_net.z*=P_net.z/Vol();
 return P_net;
 }
 double Lattice::dot_dipole(Lattice::dipole p1, Lattice::dipole p2){

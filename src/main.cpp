@@ -53,7 +53,7 @@ double T_max=5.0;//2000; //K
 double dT=0.2; //K
 int T_counter=int((T_max-T_min)/dT);
 int equilStepsPerSite=2000;//10000;//100000;//10000;
-int ensemble_size=18000;//1000000;//18000
+int ensemble_size=1000000;//18000
 int sampleFreq=1; //sample observable ever sampleFreq steps.
 
 std::ofstream mainOutput;
@@ -71,6 +71,7 @@ mainOutput << "# Run began:" << dt << "\n"
            << "# (T_min,T_max,dT) = ("<<T_min<<", "<<T_max<<", "<<dT<<")\n"
            << "# equilStepsPerSite = " << equilStepsPerSite << "\n"
            << "# sampleFreq = "<<sampleFreq<<"\n"
+           << "# r_cut (dipole-models) = " << lattice.r_cut <<"\n"
            << "# ensemble_size = " << ensemble_size << "\n#\n";
 mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv Chi\n"; 
 

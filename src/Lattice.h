@@ -20,7 +20,7 @@ public:
      * were in private before but I want user to
      * be able to access these, I think.
      * i.e means I can change some vectors ad hoc.*/
-    struct dipole {double x; double y; double z;};
+    struct dipole {double x; double y; double z; double norm;};
     //the lattice object is a vector of dipole structs.
     std::vector<dipole> lattice;	
     //get the dipole at xyz.
@@ -46,17 +46,21 @@ public:
     void MC_Step(int,int,double);
     void MC_Step_Ising(int,int,double);
     double total_Energy();
-    double total_Polarisation();
+    dipole total_Polarisation();
     double deltaE(int,int,Lattice::dipole);
-    double E_total=0.0,P_total=0.0,Esqrd=0.0,Psqrd=0.0;
+    double E_total=0.0,Esqrd=0.0,Psqrd=0.0;
+    dipole P_total;// P_total.x=0.0,P_total.y=0.0,P_total.z=0.0; //need this for correct calc.
     double E_av=0.0,P_av=0.0,Esqrd_av=0.0,Psqrd_av=0.0,Cv=0.0,Chi=0.0;
     double P_AutoCorr;
     int Accepted=0,Rejected=0;
+    // public so's I can output it in main during testing but would rather it private.
+    // will make a function called "run_summarise()" that outputs the relevant info.
+    int r_cut=2; 
 private:        
     //sizes of crystal
     int Nx,Ny;
     double J=1.0;//J=0.025;
-    int r_cut=1; //cut off for dipole-dipole interaction
+    //int r_cut=2;//1; //cut off for dipole-dipole interaction
     //seed Mersenne Twister algorithm.
     std::mt19937 m_rng{static_cast<std::mt19937>(std::chrono::high_resolution_clock::now().time_since_epoch().count())};
     std::string model;
