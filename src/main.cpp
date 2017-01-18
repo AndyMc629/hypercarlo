@@ -34,7 +34,7 @@ int main() {
  * will do this from a config file eventually. 
  ****************************/    
 //Set size of lattice
-int Nx=5,Ny=5;//Nx=40,Ny=40;
+int Nx=10,Ny=10;//Nx=40,Ny=40;
 
 //Initialise a lattice object and choose model.
 std::string Model="DIPOLE-DIPOLE";
@@ -53,7 +53,8 @@ double T_max=5.0;//2000; //K
 double dT=0.2; //K
 int T_counter=int((T_max-T_min)/dT);
 int equilStepsPerSite=2000;//10000;//100000;//10000;
-int ensemble_size=1000000;//18000
+int ensemble_size=18000;//1000000;//18000
+int sampleFreq=1; //sample observable ever sampleFreq steps.
 
 std::ofstream mainOutput;
 mainOutput.open("Output.dat");
@@ -69,6 +70,7 @@ mainOutput << "# Run began:" << dt << "\n"
            << "# model = "<<Model<<"\n"
            << "# (T_min,T_max,dT) = ("<<T_min<<", "<<T_max<<", "<<dT<<")\n"
            << "# equilStepsPerSite = " << equilStepsPerSite << "\n"
+           << "# sampleFreq = "<<sampleFreq<<"\n"
            << "# ensemble_size = " << ensemble_size << "\n#\n";
 mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv Chi\n"; 
 
@@ -84,7 +86,7 @@ lattice.Equilibrate(equilStepsPerSite,T);
 std::string equilFile="Lattice_equil_" + std::to_string(equilStepsPerSite)+"_stepsPerSite_"+std::to_string(T)+"K.dat";
 lattice.output_lattice(equilFile);
 //calc estimators
-lattice.Run(1, ensemble_size,T);
+lattice.Run(sampleFreq, ensemble_size,T);
 
 std::cout << "T="<<T<<"K:\n"
 << "E_av="<<lattice.E_av << "\n"

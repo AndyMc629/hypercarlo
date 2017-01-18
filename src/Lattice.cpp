@@ -104,29 +104,32 @@ void Lattice::Equilibrate(int stepsPerSite, double T) {
 //initialise the global var's.
 E_total=total_Energy();
 P_total=total_Polarisation();
-P_total.norm=dot_dipole(P_total,P_total);
+P_total.norm=sqrt(dot_dipole(P_total,P_total));
+
 std::cout << "Initial lattice E = " << E_total << "\n"
           << "Initial lattice P = (" 
           << P_total.x <<","<<P_total.y<<","<<P_total.z<<")\n";
+
 //Open data file to store equilibration stats.
 std::ofstream output;
 output.open("EquilibrationStats_"+std::to_string(T)+"K.dat");
 output << "#Equilibrated stats.\n"
         << "#kT/J MCS E_tot/site E_tot(global)/site P_tot/site\n";   
 
-for (int i=0;i<=(stepsPerSite*Vol());i++) {	
-        MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T); 
-        //MC_Step_Ising(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T); 
-	
-	if(  (i%(stepsPerSite*Vol()/10))==0 ){ //every 10% output to terminal
+for (int i=0;i<=(stepsPerSite*Vol());i++) {
+    if(  (i%(stepsPerSite*Vol()/10))==0 ){ //every 10% output to terminal
+            dipole pp=total_Polarisation();
 		std::cout << ((double)i/Vol()) << " steps/site: E/vol = " 
 		<< total_Energy() << ", " << E_total << ", P/vol = " 
-                << total_Polarisation() << ", " << P_total.norm << std::endl;
+                << sqrt(dot_dipole(pp,pp)) << ", " << P_total.norm << std::endl;
 	}
         if(  (i%(stepsPerSite*Vol()/100))==0 ){ //every 1% output to file
+            dipole pp=total_Polarisation();
             output <<(0.025*T)/(J*(double)300)<<" "<<(double)i/(Vol())<< " " 
-            <<total_Energy()<<" "<< E_total<<" "<<total_Polarisation()<< "\n";	
+            <<total_Energy()<<" "<< E_total<<" "<<sqrt(dot_dipole(pp,pp))<< "\n";	
         }
+        MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T); 
+        //MC_Step_Ising(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T); 		
 }
 output.close();
 }
@@ -161,9 +164,9 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     //Have been updating the estimators, now average them;
     //Not using continously updated estimators yet for checks ...
     E_av+=total_Energy();
-    P_av+=total_Polarisation();
+    P_av+=sqrt(dot_dipole(total_Polarisation(),total_Polarisation())); //two calls = horrendous!
     Esqrd_av += total_Energy()*total_Energy(); //will use updated energy later, this is for checks first.
-    Psqrd_av += total_Polarisation()*total_Polarisation();
+    Psqrd_av += dot_dipole(total_Polarisation(),total_Polarisation());
     } //after nSamples take the average 
     //these are outputted in main.cpp loop.
     E_av=1.0*E_av/nSamples;
@@ -179,6 +182,7 @@ void Lattice::MC_Step_Ising(int x, int y, double T){
     double sum=0.0;
     dipole p = get_dipole(x,y);
     double pz_current=p.z;
+    //std::cout << "E_total in MC(before)= "<<E_total<<", "<<total_Energy()<<"\n";
     //double beta=300/(0.025*T);
     
     for (int i=-1;i<=1;i+=2) {
@@ -193,11 +197,14 @@ void Lattice::MC_Step_Ising(int x, int y, double T){
     double delta=2*J*sum*pz_current;
     if (delta<=0) {
         lattice[x+y*Nx].z = -lattice[x+y*Nx].z;
+        E_total+=1.0*delta;
     }
     else if (randomNumber(0,1)<exp(-1.0*delta/T)) {
         lattice[x+y*Nx].z = -lattice[x+y*Nx].z;
+        E_total+=1.0*delta;
     }
-
+    //std::cout<<"delta = "<<delta<<"\n"
+    //<< "E_total in MC(after)= "<<E_total<<", "<<total_Energy()<<"\n\n";
 }
 
 //Lattice member func, performs MC step on x,y,z coordinate dipole
@@ -224,11 +231,12 @@ if (dE>0) {
 		}
 	else { //if move was accepted anyway update variables and keep change.
             Accepted++;
-            E_total+=dE/Vol();
+            E_total+=dE;///Vol();
             Esqrd += (dE*dE)/(Vol()*Vol()); 
             P_total.x+=lattice[x+y*Nx].x/Vol();
             P_total.y+=lattice[x+y*Nx].y/Vol();
             P_total.z+=lattice[x+y*Nx].z/Vol();
+            P_total.norm=sqrt(dot_dipole(P_total,P_total));
             Psqrd += P_total.norm*P_total.norm;
         }
 }
@@ -236,12 +244,13 @@ else if(dE<=0) {
 //do nothing to updated dipole (updated in deltaE), 
 // i.e accept the new move performed in deltaE(...).
     Accepted++;
-    E_total += dE/Vol();
+    E_total += dE;///Vol();
     Esqrd += (dE*dE)/(Vol()*Vol()); 
     //below are wrong for non-Ising z-models.
     P_total.x+=lattice[x+y*Nx].x/Vol();
     P_total.y+=lattice[x+y*Nx].y/Vol();
     P_total.z+=lattice[x+y*Nx].z/Vol();
+    P_total.norm=sqrt(dot_dipole(P_total,P_total));
     Psqrd += P_total.norm*P_total.norm;
 } 
 }//end of MC_Step.
@@ -352,10 +361,10 @@ double Lattice::total_Energy(){
 double E=0.0;
  for(int i=0;i<Nx;i++) {
           for(int j=0;j<Ny;j++) {
-                E+=site_Hamiltonian(i,j); 
+                E+=0.5*site_Hamiltonian(i,j); //0.5 to stop double counting??? Makes it work.
           }
         }      
-return E/Vol();
+return E;///Vol();
 }
 //Calc. total polarisation of lattice.
 //Choice of words not sacrosanct, this also
