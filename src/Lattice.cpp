@@ -137,65 +137,99 @@ output.close();
 }
 
 //Lattice member func, runs statistics run on lattice
-void Lattice::Run(int sampleDistance, int nSamples, double T) {
-//Update global variables to latest values, they then have a starting 
-//value for the run() function:
+void Lattice::Run(int sampleFreq, int nSamples, double T) {
+    /*************************************************************/
+    /************************ INITIALISE *************************/
+    /*************************************************************/
+    /*Update global variables to latest values, they then have a starting 
+     * value for the run() function:*/
     Accepted=0; Rejected=0;
     E_total=total_Energy();
     Esqrd=E_total*E_total;
     P_total=total_Polarisation();
     Psqrd=P_total.norm*P_total.norm;
-    //FOR CORRELATION FUNCTION 
-    //http://www.physics.buffalo.edu/phy410-505/2011/topic5/app2/
-    const int nSave= 100; //how many values to save for autocorr, make this 10 and sim dies ?
-    std::list<double> pSave;
-    double pz_autocorr[nSave]={0}; //polarisation/magnetisation correlation sum
-    //const int K=1000; //keeping with variable names in link for now.
-    //double c[K]={0}; //values for autocorrelation
-    //double Pxt[K]={0}; //collection of previous values of P_total.x
-    int nCorr=0;
-    
-    //open output file;
-    std::ofstream runOutput;
-    runOutput.open("RunStats_"+std::to_string(T)+"K.dat");
-    runOutput<<"#MCS AutoCorr_Pz\n";
-    E_av=0.0;
+    /**************** AVERAGE VARIABLES (GLOBAL) *****************/
+    E_av=0.0; //total 
     Esqrd_av=0.0;
     P_av=0.0;
     Psqrd_av=0.0;
-    Pz_av=0.0; //for autocorrelation Ising tests.
-    int i,j;
+    int i,j; 
+    /*************************************************************/
+    /*************** INITIALISE CORRELATION **********************/
+    /*************************************************************/
     
+    /************ AUTOCORRELATION VARIABLES (GLOBAL) *************/
+    PxCorr_av=0.0, PyCorr_av=0.0, PzCorr_av=0; //for autocorrelation Ising tests.
+    ECorr_av=0.0;
+    orderParamCorr_av=0.0;
+    /************ AUTOCORRELATION VARIABLES (LOCAL) *************/
+    //http://www.physics.buffalo.edu/phy410-505/2011/topic5/app2/
+    const int nSave=100; //how many values to save for autocorr, make this 10 and sim dies ?
+    std::list<double> pxSave,pySave,pzSave,ESave,OPSave;    
+    //polarisation/magnetisation accumulators
+    double px_autocorr[nSave]={0}, py_autocorr[nSave]={0}, pz_autocorr[nSave]={0};
+    double E_autocorr[nSave]={0}, orderParam_autocorr[nSave]={0};
+    int nCorr=0;
+    //open output file;
+    std::ofstream runOutput;
+    runOutput.open("RunStats_"+std::to_string(T)+"K.dat");
+    runOutput<<"# Autocorrelation functions of each variable listed.\n"
+             <<"# Values for orderParam only listed if non-Ising model.\n"
+             <<"# MCS Px Py Pz E OrderParam\n";
+    /*************************************************************/
+    /******************* PERFORM MC SWEEPS ***********************/
+    /*************************************************************/
     for (j=0;j<=(nSamples);j++) {
     //We are in equilibrium so start running but updating the global
     //variables in the MC_step function. 
-    for (i=0;i<=(sampleDistance*Vol());i++) {
+    for (i=0;i<=(sampleFreq*Vol());i++) {
         //int acts like floor for numbers > 0 (but is ~x3 faster).
         MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T);
         //MC_Step_Ising(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T);        
     }   
+    /*************************************************************/
+    /******************* UPDATE ESTIMATORS  **********************/
+    /*************************************************************/
     //Have been updating the estimators, now average them;
     //Not using continously updated estimators yet for checks ...
     E_av+=E_total; // safe to do this now if needs checking return to total_Energy();
     P_av+=sqrt(dot_dipole(total_Polarisation(),total_Polarisation())); //two calls = horrendous!
     Esqrd_av += total_Energy()*total_Energy(); //will use updated energy later, this is for checks first.
     Psqrd_av += dot_dipole(total_Polarisation(),total_Polarisation());
+    /*************************************************************/
+    /************ UPDATE CORRELATION ACCUMULATORS*****************/
+    /*************************************************************/
     //Update autocorrelation array
-    //Pxt[mod(j,K)]=P_total.x; //i.e MCS mod size of PXT. Just j if sampleDistance=1
-    if(pSave.size()==nSave) {
-        ++nCorr;
+    if(pxSave.size()==nSave) {
+        nCorr++;
+        px_autocorr[0]+=P_total.x*P_total.x;
+        py_autocorr[0]+=P_total.y*P_total.y;
         pz_autocorr[0]+=P_total.z*P_total.z;
-        Pz_av+=P_total.z;
-        std::list<double>::const_iterator ip = pSave.begin();
+        E_autocorr[0]+=E_total*E_total;
+        orderParam_autocorr[0]+=orderParam_total*orderParam_total;
+        PxCorr_av+=P_total.x;PyCorr_av+=P_total.y;PzCorr_av+=P_total.z;
+        ECorr_av+=E_total;orderParamCorr_av+=orderParam_total;
+        
+        std::list<double>::const_iterator ipx = pxSave.begin(),ipy = pySave.begin(),ipz=pzSave.begin();
+        std::list<double>::const_iterator ipE = ESave.begin(), ipOP = OPSave.begin();
     for (int i = 1; i <= nSave; i++) {
-        pz_autocorr[i] += *ip++ * P_total.z;
+        px_autocorr[i] += *ipx++ * P_total.x;
+        py_autocorr[i] += *ipy++ * P_total.y;
+        pz_autocorr[i] += *ipz++ * P_total.z;
+        E_autocorr[i] += *ipE++ * E_total;
+        orderParam_autocorr[i] += *ipOP++ * orderParam_total;
     }
         //discard oldest values
-        pSave.pop_back();
+        pxSave.pop_back();pySave.pop_back();pzSave.pop_back();
+        ESave.pop_back();OPSave.pop_back();
     }
     //save current values
-    pSave.push_front(P_total.z);
+    pxSave.push_front(P_total.x);pySave.push_front(P_total.y);pzSave.push_front(P_total.z);
+    ESave.push_front(E_total);OPSave.push_front(orderParam_total);
     } //after nSamples take the average 
+    /*************************************************************/
+    /******************* AVERAGE ESTIMATORS **********************/
+    /*************************************************************/
     //these are outputted in main.cpp loop.
     E_av=1.0*E_av/nSamples;
     P_av=1.0*P_av/nSamples;
@@ -203,24 +237,60 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     Psqrd_av=Psqrd_av/nSamples;
     Cv=(Esqrd_av-E_av*E_av)/(Vol()*kB*T*T);
     Chi=Vol()*(Psqrd_av-P_av*P_av)/(kB*T);
-    //outputting autocorrelation as func of time.
+    /*************************************************************/
+    /*********** OUTPUT AUTOCORRELATION FUNCS ********************/
+    /*************************************************************/
     for(int k=0;k<nSave;k++) {
-        //c[k]=c[k]/(nSamples-K);
-        //c[k]-=c[0];
-        runOutput<<k<<" "<<pz_autocorr[k]<<"\n";
+        runOutput<<k<<" "<<px_autocorr[k]/px_autocorr[0]
+                <<" "<<py_autocorr[k]/py_autocorr[0]
+                <<" "<<pz_autocorr[k]/pz_autocorr[0]
+                <<" "<<E_autocorr[k]/E_autocorr[0]
+                <<" "<<orderParam_autocorr[k]<<"\n";
     }
     runOutput.close();
     
     //calculate autocorrelation time for Pz, Pz_AutoCorrTime is a 
     //public var in the 'Lattice' class
-    double avCorr=Pz_av/nCorr;
-    double c0 = pz_autocorr[0]/nCorr - avCorr*avCorr;
-    tau_pz=0;
+    double avpxCorr=PxCorr_av/nCorr,avpyCorr=PyCorr_av/nCorr,avpzCorr=PzCorr_av/nCorr;
+    double avECorr=ECorr_av/nCorr, avOPCorr=orderParamCorr_av/nCorr;
+    
+    double cpx0 = px_autocorr[0]/nCorr - avpxCorr*avpxCorr;
+    double cpy0 = py_autocorr[0]/nCorr - avpyCorr*avpyCorr;
+    double cpz0 = pz_autocorr[0]/nCorr - avpzCorr*avpzCorr;
+    double cE0 = E_autocorr[0]/nCorr - avECorr*avECorr;
+    double cOP0 = orderParam_autocorr[0]/nCorr - avOPCorr*avOPCorr;
+    tau_px=0.0, tau_py=0.0, tau_pz=0, tau_E=0.0, tau_orderParam=0.0;
     for (int k=1;k<=nSave;k++) {
-        tau_pz += (pz_autocorr[k]/nCorr-avCorr*avCorr) /c0;
+        tau_px += (px_autocorr[k]/nCorr-avpxCorr*avpxCorr) /cpx0;
+        tau_py += (py_autocorr[k]/nCorr-avpyCorr*avpyCorr) /cpy0;
+        tau_pz += (pz_autocorr[k]/nCorr-avpzCorr*avpzCorr) /cpz0;
+        tau_E += (E_autocorr[k]/nCorr-avECorr*avECorr) /cE0;
+        tau_orderParam += (orderParam_autocorr[k]/nCorr-avOPCorr*avOPCorr) /cOP0;
+    }  
+}
+
+double Lattice::OrderParameter() {
+    double OP=0.0; //order param
+    if(model.compare("DIPOLE-DIPOLE")==0){
+        /* See Tomita, Monte Carlo Study of Two-Dmensional Heisenberg
+         * Dipolar Lattices.
+         * Journal of the Physical Society of Japan Vol. 78, 
+         * No. 11, November, 2009, 114004 
+         */
+        // for dipole-dipole model OP is a vector 
+        double OPx=0.0,OPy=0.0,OPz=0.0;
+        dipole p;
+        for(int i=0;i<Nx;i++) {
+            for(int j=0;j<Ny;j++) {
+                p=get_dipole(i,j);
+                OPx+=std::pow(-1,j)*p.x;
+                OPy+=std::pow(-1,i)*p.y;
+                OPx+=std::pow(-1,i+j)*p.z;
+            }
+        }
+        OP=sqrt(OPx*OPx+OPy*OPy+OPz*OPz);
     }
-    
-    
+    return OP;
 }
 
 void Lattice::MC_Step_Ising(int x, int y, double T){

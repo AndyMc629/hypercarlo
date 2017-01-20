@@ -34,7 +34,7 @@ int main() {
  * will do this from a config file eventually. 
  ****************************/    
 //Set size of lattice
-int Nx=20,Ny=20;//Nx=40,Ny=40;
+int Nx=10,Ny=10;//Nx=40,Ny=40;
 
 //Initialise a lattice object and choose model.
 std::string Model="ISING";//"DIPOLE-DIPOLE";
@@ -73,7 +73,7 @@ mainOutput << "# Run began:" << dt << "\n"
            << "# sampleFreq = "<<sampleFreq<<"\n"
            << "# r_cut (dipole-models) = " << lattice.r_cut <<"\n"
            << "# ensemble_size = " << ensemble_size << "\n#\n";
-mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv Chi tau_pz\n"; 
+mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv Chi tau_px tau_py tau_pz tau_E tau_orderParam\n"; 
 
 //for (int T=T_min;T<=T_max;T=T+dT) {
 for (int i=0; i<=T_counter;i++) {
@@ -94,9 +94,10 @@ std::cout << "T="<<T<<"K:\n"
 << "P_av="<<lattice.P_av << "\n"
 << "Accepted="<<lattice.Accepted<<" , Rejected="<<lattice.Rejected<< "\n\n";
 
-mainOutput << T << " " << lattice.E_av << " " << lattice.Esqrd_av << " "
-<<lattice.P_av<< " " << lattice.Psqrd_av << " " << lattice.Cv 
-<< " " << lattice.Chi<<" "<<lattice.tau_pz<<"\n";
+mainOutput << T << " " << lattice.E_av << " " << lattice.Esqrd_av 
+<< " " <<lattice.P_av<< " " << lattice.Psqrd_av << " " << lattice.Cv 
+<< " " << lattice.Chi<< " " <<lattice.tau_px<< " " <<lattice.tau_py
+<< " " <<lattice.tau_pz<< " "<<lattice.tau_E<< " " <<lattice.tau_orderParam<<"\n";
 
 }
 mainOutput.close();
