@@ -4,6 +4,6 @@
  */
 //returns correct modulus whether value is negative or not
 //library supplied % does not work for negative numerator.
-int mod(int x, int N) {
+int mod(int x, int N) { // calculates x mod N.
     return ((x %= N) < 0) ? x+N : x;
 }
