@@ -23,7 +23,7 @@ Run simulation on lattice, gather statistics --> Calculate averages --> Output a
 #include "Lattice.h"
 #include<vector>
 #include<random>
-#include<chrono>
+//#include<chrono>
 #include<ctime> //output times in log files
 //using namespace std;
 
@@ -34,7 +34,7 @@ int main() {
  * will do this from a config file eventually. 
  ****************************/    
 //Set size of lattice
-int Nx=10,Ny=10;//Nx=40,Ny=40;
+int Nx=5,Ny=5;//Nx=40,Ny=40;
 
 //Initialise a lattice object and choose model.
 std::string Model="DIPOLE-DIPOLE";
