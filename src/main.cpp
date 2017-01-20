@@ -34,7 +34,7 @@ int main() {
  * will do this from a config file eventually. 
  ****************************/    
 //Set size of lattice
-int Nx=5,Ny=5;//Nx=40,Ny=40;
+int Nx=20,Ny=20;//Nx=40,Ny=40;
 
 //Initialise a lattice object and choose model.
 std::string Model="ISING";//"DIPOLE-DIPOLE";
@@ -53,7 +53,7 @@ double T_max=5.0;//2000; //K
 double dT=0.2; //K
 int T_counter=int((T_max-T_min)/dT);
 int equilStepsPerSite=2000;//10000;//100000;//10000;
-int ensemble_size=18000;//1000000;//18000
+int ensemble_size=180000; //180000;//1000000;//18000
 int sampleFreq=1; //sample observable ever sampleFreq steps.
 
 std::ofstream mainOutput;
@@ -73,7 +73,7 @@ mainOutput << "# Run began:" << dt << "\n"
            << "# sampleFreq = "<<sampleFreq<<"\n"
            << "# r_cut (dipole-models) = " << lattice.r_cut <<"\n"
            << "# ensemble_size = " << ensemble_size << "\n#\n";
-mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv Chi\n"; 
+mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv Chi tau_pz\n"; 
 
 //for (int T=T_min;T<=T_max;T=T+dT) {
 for (int i=0; i<=T_counter;i++) {
@@ -96,7 +96,7 @@ std::cout << "T="<<T<<"K:\n"
 
 mainOutput << T << " " << lattice.E_av << " " << lattice.Esqrd_av << " "
 <<lattice.P_av<< " " << lattice.Psqrd_av << " " << lattice.Cv 
-<< " " << lattice.Chi<<"\n";
+<< " " << lattice.Chi<<" "<<lattice.tau_pz<<"\n";
 
 }
 mainOutput.close();

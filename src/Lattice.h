@@ -4,6 +4,8 @@
 #include<string>
 #include<iostream>
 #include<random>
+#include<chrono>
+#include<list> // for autocorrelation lists.
 
 class Lattice {
     //friend class Model;
@@ -51,10 +53,15 @@ public:
     double E_total=0.0,Esqrd=0.0,Psqrd=0.0;
     dipole P_total;// P_total.x=0.0,P_total.y=0.0,P_total.z=0.0; //need this for correct calc.
     double E_av=0.0,P_av=0.0,Esqrd_av=0.0,Psqrd_av=0.0,Cv=0.0,Chi=0.0;
-    double P_AutoCorr;
+    //For autocorrelation calc in Ising model.
+    double Pz_av=0.0;
+    double tau_pz; //autocorrelation time for pz.
+    //For MC stats.
     int Accepted=0,Rejected=0;
-    // public so's I can output it in main during testing but would rather it private.
-    // will make a function called "run_summarise()" that outputs the relevant info.
+    /* Length of interactions in Dipole-Dipole models.
+    * Public so's I can output it in main during testing but 
+    * would rather it private. Will make a function called "run_summarise()" 
+    * that outputs the relevant info. */
     int r_cut=2; 
 private:        
     //sizes of crystal

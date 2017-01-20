@@ -8,6 +8,8 @@
 #include "Constants.h" //constants like pi,kB etc.
 #include<cmath>
 #include "mathsFuncs.h" //for correct modulo function etc...
+#include<list> // for autocorrelation lists.
+
 using namespace Constants; //constants like pi.
 
 //Seed a Mersenne Twister random number generator with current time.
@@ -145,18 +147,23 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     Psqrd=P_total.norm*P_total.norm;
     //FOR CORRELATION FUNCTION 
     //http://www.physics.buffalo.edu/phy410-505/2011/topic5/app2/
-    const int K=1000; //keeping with variable names in link for now.
-    double c[K]={0}; //values for autocorrelation
-    double Pxt[K]={0}; //collection of previous values of P_total.x
+    const int nSave= 100; //how many values to save for autocorr, make this 10 and sim dies ?
+    std::list<double> pSave;
+    double pz_autocorr[nSave]={0}; //polarisation/magnetisation correlation sum
+    //const int K=1000; //keeping with variable names in link for now.
+    //double c[K]={0}; //values for autocorrelation
+    //double Pxt[K]={0}; //collection of previous values of P_total.x
+    int nCorr=0;
     
     //open output file;
     std::ofstream runOutput;
     runOutput.open("RunStats_"+std::to_string(T)+"K.dat");
-    runOutput<<"#MCS AutoCorr_Px\n";
+    runOutput<<"#MCS AutoCorr_Pz\n";
     E_av=0.0;
     Esqrd_av=0.0;
     P_av=0.0;
     Psqrd_av=0.0;
+    Pz_av=0.0; //for autocorrelation Ising tests.
     int i,j;
     
     for (j=0;j<=(nSamples);j++) {
@@ -174,13 +181,20 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     Esqrd_av += total_Energy()*total_Energy(); //will use updated energy later, this is for checks first.
     Psqrd_av += dot_dipole(total_Polarisation(),total_Polarisation());
     //Update autocorrelation array
-    Pxt[mod(j,K)]=P_total.x; //i.e MCS mod size of PXT. Just j if sampleDistance=1
-    if(j>=K) {
-        std::cout << "made it! j = "<<j<<"\n";
-        for(int k=0;k<(K-1);k++) {
-            c[k] += Pxt[j-K]*Pxt[j-K+k];
-        }
+    //Pxt[mod(j,K)]=P_total.x; //i.e MCS mod size of PXT. Just j if sampleDistance=1
+    if(pSave.size()==nSave) {
+        ++nCorr;
+        pz_autocorr[0]+=P_total.z*P_total.z;
+        Pz_av+=P_total.z;
+        std::list<double>::const_iterator ip = pSave.begin();
+    for (int i = 1; i <= nSave; i++) {
+        pz_autocorr[i] += *ip++ * P_total.z;
     }
+        //discard oldest values
+        pSave.pop_back();
+    }
+    //save current values
+    pSave.push_front(P_total.z);
     } //after nSamples take the average 
     //these are outputted in main.cpp loop.
     E_av=1.0*E_av/nSamples;
@@ -189,12 +203,24 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     Psqrd_av=Psqrd_av/nSamples;
     Cv=(Esqrd_av-E_av*E_av)/(Vol()*kB*T*T);
     Chi=Vol()*(Psqrd_av-P_av*P_av)/(kB*T);
-    for(int k=0;k<K;k++) {
-        c[k]=c[k]/(j-K);
-        c[k]-=c[0];
-        runOutput<<k<<" "<<c[k]<<"\n";
+    //outputting autocorrelation as func of time.
+    for(int k=0;k<nSave;k++) {
+        //c[k]=c[k]/(nSamples-K);
+        //c[k]-=c[0];
+        runOutput<<k<<" "<<pz_autocorr[k]<<"\n";
     }
     runOutput.close();
+    
+    //calculate autocorrelation time for Pz, Pz_AutoCorrTime is a 
+    //public var in the 'Lattice' class
+    double avCorr=Pz_av/nCorr;
+    double c0 = pz_autocorr[0]/nCorr - avCorr*avCorr;
+    tau_pz=0;
+    for (int k=1;k<=nSave;k++) {
+        tau_pz += (pz_autocorr[k]/nCorr-avCorr*avCorr) /c0;
+    }
+    
+    
 }
 
 void Lattice::MC_Step_Ising(int x, int y, double T){
