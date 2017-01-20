@@ -143,30 +143,44 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     Esqrd=E_total*E_total;
     P_total=total_Polarisation();
     Psqrd=P_total.norm*P_total.norm;
+    //FOR CORRELATION FUNCTION 
+    //http://www.physics.buffalo.edu/phy410-505/2011/topic5/app2/
+    const int K=1000; //keeping with variable names in link for now.
+    double c[K]={0}; //values for autocorrelation
+    double Pxt[K]={0}; //collection of previous values of P_total.x
     
     //open output file;
     std::ofstream runOutput;
     runOutput.open("RunStats_"+std::to_string(T)+"K.dat");
-    runOutput<<"#MCS E Esqrd E_av Esqrd_av P Psqrd P_sqrd_av\n";
+    runOutput<<"#MCS AutoCorr_Px\n";
     E_av=0.0;
     Esqrd_av=0.0;
     P_av=0.0;
     Psqrd_av=0.0;
-    for (int j=0;j<=(nSamples);j++) {
+    int i,j;
+    
+    for (j=0;j<=(nSamples);j++) {
     //We are in equilibrium so start running but updating the global
     //variables in the MC_step function. 
-    for (int i=0;i<=(sampleDistance*Vol());i++) {
+    for (i=0;i<=(sampleDistance*Vol());i++) {
         //int acts like floor for numbers > 0 (but is ~x3 faster).
         MC_Step(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T);
-        //MC_Step_Ising(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T);
-    }
-    //runOutput<<
+        //MC_Step_Ising(int(randomNumber(0,Nx)),int(randomNumber(0,Ny)),T);        
+    }   
     //Have been updating the estimators, now average them;
     //Not using continously updated estimators yet for checks ...
     E_av+=E_total; // safe to do this now if needs checking return to total_Energy();
     P_av+=sqrt(dot_dipole(total_Polarisation(),total_Polarisation())); //two calls = horrendous!
     Esqrd_av += total_Energy()*total_Energy(); //will use updated energy later, this is for checks first.
     Psqrd_av += dot_dipole(total_Polarisation(),total_Polarisation());
+    //Update autocorrelation array
+    Pxt[mod(j,K)]=P_total.x; //i.e MCS mod size of PXT. Just j if sampleDistance=1
+    if(j>=K) {
+        std::cout << "made it! j = "<<j<<"\n";
+        for(int k=0;k<(K-1);k++) {
+            c[k] += Pxt[j-K]*Pxt[j-K+k];
+        }
+    }
     } //after nSamples take the average 
     //these are outputted in main.cpp loop.
     E_av=1.0*E_av/nSamples;
@@ -175,6 +189,11 @@ void Lattice::Run(int sampleDistance, int nSamples, double T) {
     Psqrd_av=Psqrd_av/nSamples;
     Cv=(Esqrd_av-E_av*E_av)/(Vol()*kB*T*T);
     Chi=Vol()*(Psqrd_av-P_av*P_av)/(kB*T);
+    for(int k=0;k<K;k++) {
+        c[k]=c[k]/(j-K);
+        c[k]-=c[0];
+        runOutput<<k<<" "<<c[k]<<"\n";
+    }
     runOutput.close();
 }
 
