@@ -10,6 +10,9 @@
 class Lattice {
     //friend class Model;
 public:
+    /*************************************************************/
+    /************************* FUNCTIONS *************************/
+    /*************************************************************/
     //Initialise a lattice/lattice constructor 
     //Lattice (int,int,std::mt19937&);
     Lattice(int,int, std::string);
@@ -39,6 +42,7 @@ public:
     void output_lattice(std::string);
     void Equilibrate(int, double);
     void Run(int,int,double);
+    double OrderParameter();
     double site_Hamiltonian(int, int);
     double site_Energy(int, int);
     double dot_dipole(Lattice::dipole p1, Lattice::dipole p2);
@@ -50,12 +54,18 @@ public:
     double total_Energy();
     dipole total_Polarisation();
     double deltaE(int,int,Lattice::dipole);
+    /*************************************************************/
+    /************************* VARIABLES *************************/
+    /*************************************************************/
     double E_total=0.0,Esqrd=0.0,Psqrd=0.0;
     dipole P_total;// P_total.x=0.0,P_total.y=0.0,P_total.z=0.0; //need this for correct calc.
     double E_av=0.0,P_av=0.0,Esqrd_av=0.0,Psqrd_av=0.0,Cv=0.0,Chi=0.0;
-    //For autocorrelation calc in Ising model.
-    double Pz_av=0.0;
-    double tau_pz; //autocorrelation time for pz.
+    double orderParam_total=0.0, orderParam_av=0.0; //will have a diff order param for different models
+    /* Autcorrelation variables*/
+    double ECorr_av=0.0;
+    double PxCorr_av=0.0, PyCorr_av=0.0, PzCorr_av=0.0; 
+    double orderParamCorr_av=0.0;
+    double tau_E, tau_px, tau_py, tau_pz, tau_orderParam; //autocorrelation times
     //For MC stats.
     int Accepted=0,Rejected=0;
     /* Length of interactions in Dipole-Dipole models.
@@ -63,6 +73,7 @@ public:
     * would rather it private. Will make a function called "run_summarise()" 
     * that outputs the relevant info. */
     int r_cut=2; 
+    /*************************************************************/
 private:        
     //sizes of crystal
     int Nx,Ny;
