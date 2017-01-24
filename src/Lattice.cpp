@@ -93,7 +93,7 @@ std::ofstream output;
 output.open(datafile.c_str());
 for(int i=0;i<Nx;i++) {
         for(int j=0;j<Ny;j++) {
-                output << i << " " << j << " " << get_dipole(i,j).x << " "
+                output << i << " " << j << " " << "0 " << get_dipole(i,j).x << " "
                 << get_dipole(i,j).y << " "
                 << get_dipole(i,j).z << "\n";
                 }
@@ -242,6 +242,7 @@ void Lattice::Run(int sampleFreq, int nSamples, double T) {
     Psqrd_av=Psqrd_av/nSamples;
     Cv=(Esqrd_av-E_av*E_av)/(Vol()*kB*T*T);
     Chi=Vol()*(Psqrd_av-P_av*P_av)/(kB*T);
+    orderParam_av=orderParam_av/nSamples;
     /*************************************************************/
     /*********** OUTPUT AUTOCORRELATION FUNCS ********************/
     /*************************************************************/    
@@ -289,12 +290,13 @@ double Lattice::OrderParameter() {
             for(int j=0;j<Ny;j++) {
                 p=get_dipole(i,j);
                 OPx+=std::pow(-1,j)*p.x;//std::pow(-1,mod(j,2))*p.x;
-                std::cout<<"i,j ="<<i<<", "<<j<<" -1^j="<<std::pow(-1,j)<<"\n";
+                //std::cout<<"i,j ="<<i<<", "<<j<<" px="<<p.x<<"\n";
                 OPy+=std::pow(-1,i)*p.y;//std::pow(-1,mod(i,2))*p.y;
                 OPx+=std::pow(-1,i+j)*p.z;//std::pow(-1,mod(i+j,2))*p.z;
             }
         }
         OP=OPx*OPx+OPy*OPy+OPz*OPz;
+        //std::cout<< "OP = "<<OP<<"\n";
     }
     return OP;
 }
@@ -473,7 +475,7 @@ double Lattice::site_Hamiltonian(int x, int y) {
                 //std::cout<<rij<<std::endl;
                 H += dot_dipole(pi,pj)/(rij*rij*rij);
                 //dot product manually to save casting (i,j) as vector
-                H -= (pi.x*i+pi.y*j)*(pj.x*i+pj.y*j)/(rij*rij*rij);
+                H -= (pi.x*i+pi.y*j)*(pj.x*i+pj.y*j)/(rij*rij*rij*rij*rij);
             }
         }      
     } //DIPOLE-DIPOLE ENERGY

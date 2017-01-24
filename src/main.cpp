@@ -48,12 +48,12 @@ lattice.output_lattice("InitialState.dat");
 
 //equilibrate lattice at temp T.
 //double temp; //K
-double T_min=0.2;//1000; //K
-double T_max=5.0;//2000; //K
-double dT=0.2; //K
+double T_min=0.05;//0.2;//1000; //K 2D Ising T_c ~ 2.2 
+double T_max=1.05;//5.0//2000; //K 2D dipole T_c ~ 0.5
+double dT=0.05; //K
 int T_counter=int((T_max-T_min)/dT);
 int equilStepsPerSite=2000;//10000;//100000;//10000;
-int ensemble_size=100;//18000; //180000;//1000000;//18000
+int ensemble_size=180000;//100;//18000; //180000;//1000000;//18000
 int sampleFreq=1; //sample observable ever sampleFreq steps.
 
 std::ofstream mainOutput;
@@ -73,7 +73,7 @@ mainOutput << "# Run began:" << dt << "\n"
            << "# sampleFreq = "<<sampleFreq<<"\n"
            << "# r_cut (dipole-models) = " << lattice.r_cut <<"\n"
            << "# ensemble_size = " << ensemble_size << "\n#\n";
-mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv Chi tau_px tau_py tau_pz tau_E tau_orderParam\n"; 
+mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv Chi OP tau(px) tau(py) tau(pz) tau(E) tau(OP)\n"; 
 
 //for (int T=T_min;T<=T_max;T=T+dT) {
 for (int i=0; i<=T_counter;i++) {
@@ -92,11 +92,12 @@ lattice.Run(sampleFreq, ensemble_size,T);
 std::cout << "T="<<T<<"K:\n"
 << "E_av="<<lattice.E_av << "\n"
 << "P_av="<<lattice.P_av << "\n"
+<< "OP = "<<lattice.orderParam_av<<"\n"
 << "Accepted="<<lattice.Accepted<<" , Rejected="<<lattice.Rejected<< "\n\n";
 
 mainOutput << T << " " << lattice.E_av << " " << lattice.Esqrd_av 
 << " " <<lattice.P_av<< " " << lattice.Psqrd_av << " " << lattice.Cv 
-<< " " << lattice.Chi<< " " <<lattice.tau_px<< " " <<lattice.tau_py
+<< " " << lattice.Chi<< " " <<lattice.orderParam_av<<" "<<lattice.tau_px<< " " <<lattice.tau_py
 << " " <<lattice.tau_pz<< " "<<lattice.tau_E<< " " <<lattice.tau_orderParam<<"\n";
 
 }
