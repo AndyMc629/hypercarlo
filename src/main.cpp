@@ -42,12 +42,11 @@ std::string Model="DIPOLE-DIPOLE";//"DIPOLE-DIPOLE";
 Lattice lattice=Lattice(Nx,Ny, Model);
 
 //Initialise the lattice to FERRO or PARA_ISING for Ising model.
-lattice.initialise_lattice("FERRO");
+lattice.initialise_lattice("COL_ANTI_FERRO");
 //output initial lattice.
 lattice.output_lattice("InitialState.dat");
 
 //equilibrate lattice at temp T.
-//double temp; //K
 double T_min=0.05;//0.2;//1000; //K 2D Ising T_c ~ 2.2 
 double T_max=1.05;//5.0//2000; //K 2D dipole T_c ~ 0.5
 double dT=0.05; //K
