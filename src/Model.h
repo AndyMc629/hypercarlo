@@ -13,15 +13,21 @@
 #include<iostream>
 #include "Lattice.h"
 
-class Model : public Lattice{ //Model is an inherited class
+class Lattice; //Model is friend of Lattice so need forward declaration.
+class Model {
+    friend class Lattice;
 public:
     //Model constructor
     Model(std::string);
+    //Model default constructor
+    Model();
     //Model destructor
     ~Model(); 
     double Ising_Site_Hamiltonian(int, int);
 private:
-    std::string modelName;    
+    std::string modelName;  
+protected:
+    Lattice lattice;
 };
 #endif /* MODEL_H */
 

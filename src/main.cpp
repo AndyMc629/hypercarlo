@@ -37,7 +37,7 @@ int main() {
 int Nx=10,Ny=10;//Nx=40,Ny=40;
 
 //Initialise a lattice object and choose model.
-std::string Model="ISING";//"DIPOLE-DIPOLE";
+std::string Model="DIPOLE-DIPOLE";//"DIPOLE-DIPOLE";
 //Lattice lattice=Lattice(Nx,Ny, "ISING");
 Lattice lattice=Lattice(Nx,Ny, Model);
 
@@ -53,7 +53,7 @@ double T_max=5.0;//2000; //K
 double dT=0.2; //K
 int T_counter=int((T_max-T_min)/dT);
 int equilStepsPerSite=2000;//10000;//100000;//10000;
-int ensemble_size=180000; //180000;//1000000;//18000
+int ensemble_size=100;//18000; //180000;//1000000;//18000
 int sampleFreq=1; //sample observable ever sampleFreq steps.
 
 std::ofstream mainOutput;

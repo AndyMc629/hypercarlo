@@ -148,11 +148,13 @@ void Lattice::Run(int sampleFreq, int nSamples, double T) {
     Esqrd=E_total*E_total;
     P_total=total_Polarisation();
     Psqrd=P_total.norm*P_total.norm;
+    orderParam_total=OrderParameter();
     /**************** AVERAGE VARIABLES (GLOBAL) *****************/
     E_av=0.0; //total 
     Esqrd_av=0.0;
     P_av=0.0;
     Psqrd_av=0.0;
+    orderParam_av=0.0;
     int i,j; 
     /*************************************************************/
     /*************** INITIALISE CORRELATION **********************/
@@ -196,8 +198,11 @@ void Lattice::Run(int sampleFreq, int nSamples, double T) {
     P_av+=sqrt(dot_dipole(total_Polarisation(),total_Polarisation())); //two calls = horrendous!
     Esqrd_av += total_Energy()*total_Energy(); //will use updated energy later, this is for checks first.
     Psqrd_av += dot_dipole(total_Polarisation(),total_Polarisation());
+    orderParam_total = OrderParameter();
+    orderParam_av += orderParam_total;
+    
     /*************************************************************/
-    /************ UPDATE CORRELATION ACCUMULATORS*****************/
+    /***********UPDATE AUTOCORRELATION ACCUMULATORS***************/
     /*************************************************************/
     //Update autocorrelation array
     if(pxSave.size()==nSave) {
@@ -212,12 +217,12 @@ void Lattice::Run(int sampleFreq, int nSamples, double T) {
         
         std::list<double>::const_iterator ipx = pxSave.begin(),ipy = pySave.begin(),ipz=pzSave.begin();
         std::list<double>::const_iterator ipE = ESave.begin(), ipOP = OPSave.begin();
-    for (int i = 1; i <= nSave; i++) {
-        px_autocorr[i] += *ipx++ * P_total.x;
-        py_autocorr[i] += *ipy++ * P_total.y;
-        pz_autocorr[i] += *ipz++ * P_total.z;
-        E_autocorr[i] += *ipE++ * E_total;
-        orderParam_autocorr[i] += *ipOP++ * orderParam_total;
+    for (int ii = 1; ii <= nSave; ii++) {
+        px_autocorr[ii] += *ipx++ * P_total.x;
+        py_autocorr[ii] += *ipy++ * P_total.y;
+        pz_autocorr[ii] += *ipz++ * P_total.z;
+        E_autocorr[ii] += *ipE++ * E_total;
+        orderParam_autocorr[ii] += *ipOP++ * orderParam_total;
     }
         //discard oldest values
         pxSave.pop_back();pySave.pop_back();pzSave.pop_back();
@@ -239,34 +244,34 @@ void Lattice::Run(int sampleFreq, int nSamples, double T) {
     Chi=Vol()*(Psqrd_av-P_av*P_av)/(kB*T);
     /*************************************************************/
     /*********** OUTPUT AUTOCORRELATION FUNCS ********************/
-    /*************************************************************/
-    for(int k=0;k<nSave;k++) {
-        runOutput<<k<<" "<<px_autocorr[k]/px_autocorr[0]
-                <<" "<<py_autocorr[k]/py_autocorr[0]
-                <<" "<<pz_autocorr[k]/pz_autocorr[0]
-                <<" "<<E_autocorr[k]/E_autocorr[0]
-                <<" "<<orderParam_autocorr[k]<<"\n";
-    }
-    runOutput.close();
-    
+    /*************************************************************/    
     //calculate autocorrelation time for Pz, Pz_AutoCorrTime is a 
     //public var in the 'Lattice' class
-    double avpxCorr=PxCorr_av/nCorr,avpyCorr=PyCorr_av/nCorr,avpzCorr=PzCorr_av/nCorr;
-    double avECorr=ECorr_av/nCorr, avOPCorr=orderParamCorr_av/nCorr;
+    //double avpxCorr=PxCorr_av/nCorr,avpyCorr=PyCorr_av/nCorr,avpzCorr=PzCorr_av/nCorr;
+    //double avECorr=ECorr_av/nCorr, avOPCorr=orderParamCorr_av/nCorr;
+    PxCorr_av=PxCorr_av/nCorr;PyCorr_av=PyCorr_av/nCorr;PxCorr_av=PzCorr_av/nCorr;
+    ECorr_av=ECorr_av/nCorr; orderParamCorr_av=orderParamCorr_av/nCorr;
     
-    double cpx0 = px_autocorr[0]/nCorr - avpxCorr*avpxCorr;
-    double cpy0 = py_autocorr[0]/nCorr - avpyCorr*avpyCorr;
-    double cpz0 = pz_autocorr[0]/nCorr - avpzCorr*avpzCorr;
-    double cE0 = E_autocorr[0]/nCorr - avECorr*avECorr;
-    double cOP0 = orderParam_autocorr[0]/nCorr - avOPCorr*avOPCorr;
+    double cpx0 = px_autocorr[0]/nCorr - PxCorr_av*PxCorr_av;
+    double cpy0 = py_autocorr[0]/nCorr - PyCorr_av*PyCorr_av;
+    double cpz0 = pz_autocorr[0]/nCorr - PzCorr_av*PzCorr_av;
+    double cE0 = E_autocorr[0]/nCorr - ECorr_av*ECorr_av;
+    double cOP0 = orderParam_autocorr[0]/nCorr - orderParamCorr_av*orderParamCorr_av;
+    //re-initialise the autocorrelation times
     tau_px=0.0, tau_py=0.0, tau_pz=0, tau_E=0.0, tau_orderParam=0.0;
     for (int k=1;k<=nSave;k++) {
-        tau_px += (px_autocorr[k]/nCorr-avpxCorr*avpxCorr) /cpx0;
-        tau_py += (py_autocorr[k]/nCorr-avpyCorr*avpyCorr) /cpy0;
-        tau_pz += (pz_autocorr[k]/nCorr-avpzCorr*avpzCorr) /cpz0;
-        tau_E += (E_autocorr[k]/nCorr-avECorr*avECorr) /cE0;
-        tau_orderParam += (orderParam_autocorr[k]/nCorr-avOPCorr*avOPCorr) /cOP0;
+        runOutput<<k<<" "<<(px_autocorr[k]/nCorr-PxCorr_av*PxCorr_av)/cpx0
+                <<" "<<(py_autocorr[k]/nCorr-PyCorr_av*PyCorr_av)/cpy0
+                <<" "<<(pz_autocorr[k]/nCorr-PzCorr_av*PzCorr_av)/cpz0
+                <<" "<<(E_autocorr[k]/nCorr-ECorr_av*ECorr_av)/cE0
+                <<" "<<(orderParam_autocorr[k]/nCorr-orderParamCorr_av*orderParamCorr_av)/cOP0<<"\n";
+        tau_px += (px_autocorr[k]/nCorr-PxCorr_av*PxCorr_av)/cpx0;
+        tau_py += (py_autocorr[k]/nCorr-PyCorr_av*PyCorr_av)/cpy0;
+        tau_pz += (pz_autocorr[k]/nCorr-PzCorr_av*PzCorr_av)/cpz0;
+        tau_E += (E_autocorr[k]/nCorr-ECorr_av*ECorr_av)/cE0;
+        tau_orderParam += (orderParam_autocorr[k]/nCorr-orderParamCorr_av*orderParamCorr_av)/cOP0;
     }  
+    runOutput.close();
 }
 
 double Lattice::OrderParameter() {
@@ -283,12 +288,13 @@ double Lattice::OrderParameter() {
         for(int i=0;i<Nx;i++) {
             for(int j=0;j<Ny;j++) {
                 p=get_dipole(i,j);
-                OPx+=std::pow(-1,j)*p.x;
-                OPy+=std::pow(-1,i)*p.y;
-                OPx+=std::pow(-1,i+j)*p.z;
+                OPx+=std::pow(-1,j)*p.x;//std::pow(-1,mod(j,2))*p.x;
+                std::cout<<"i,j ="<<i<<", "<<j<<" -1^j="<<std::pow(-1,j)<<"\n";
+                OPy+=std::pow(-1,i)*p.y;//std::pow(-1,mod(i,2))*p.y;
+                OPx+=std::pow(-1,i+j)*p.z;//std::pow(-1,mod(i+j,2))*p.z;
             }
         }
-        OP=sqrt(OPx*OPx+OPy*OPy+OPz*OPz);
+        OP=OPx*OPx+OPy*OPy+OPz*OPz;
     }
     return OP;
 }
