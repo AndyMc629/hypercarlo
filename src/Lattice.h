@@ -44,6 +44,7 @@ public:
     void Run(int,int,double);
     double OrderParameter();
     double site_Hamiltonian(int, int);
+    double site_Potential(int, int);
     double site_Energy(int, int);
     double dot_dipole(Lattice::dipole p1, Lattice::dipole p2);
     double randomNumber(double, double);

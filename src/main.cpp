@@ -25,14 +25,16 @@ Run simulation on lattice, gather statistics --> Calculate averages --> Output a
 #include<random>
 //#include<chrono>
 #include<ctime> //output times in log files
+//#include <boost/property_tree/ptree.hpp> //should do config but not working on mac, need lib linker command?
+//#include <boost/property_tree/ini_parser.hpp>
 //using namespace std;
 
 int main() {
 
- /*************************** 
- * SET UP THE RUN PARAMETERS 
- * will do this from a config file eventually. 
- ****************************/    
+ /********************************************************/ 
+ /*************** SET UP THE RUN PARAMETERS **************/
+ /**** will do this from a config file eventually. *******/ 
+ /********************************************************/    
 //Set size of lattice
 int Nx=10,Ny=10;//Nx=40,Ny=40;
 
@@ -50,11 +52,16 @@ lattice.output_lattice("InitialState.dat");
 double T_min=0.05;//0.2;//1000; //K 2D Ising T_c ~ 2.2 
 double T_max=1.05;//5.0//2000; //K 2D dipole T_c ~ 0.5
 double dT=0.05; //K
-int T_counter=int((T_max-T_min)/dT);
 int equilStepsPerSite=2000;//10000;//100000;//10000;
-int ensemble_size=180000;//100;//18000; //180000;//1000000;//18000
+int ensemble_size=18000;//180000;//100;//18000; //180000;//1000000;//18000
 int sampleFreq=1; //sample observable ever sampleFreq steps.
+/********************************************************/ 
+/********************************************************/ 
+/********************************************************/
 
+/********************************************************/
+/******************SET UP OUTPUT FILE********************/
+/********************************************************/
 std::ofstream mainOutput;
 mainOutput.open("Output.dat");
 
@@ -73,33 +80,47 @@ mainOutput << "# Run began:" << dt << "\n"
            << "# r_cut (dipole-models) = " << lattice.r_cut <<"\n"
            << "# ensemble_size = " << ensemble_size << "\n#\n";
 mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv Chi OP tau(px) tau(py) tau(pz) tau(E) tau(OP)\n"; 
+/********************************************************/ 
+/********************************************************/ 
+/********************************************************/
 
+/********************************************************/
+/********************** TEMP LOOP ***********************/
+/********************************************************/
+int T_counter=int((T_max-T_min)/dT);
 //for (int T=T_min;T<=T_max;T=T+dT) {
 for (int i=0; i<=T_counter;i++) {
-double T=(i*dT)+T_min;
-
-//If you want to re-initialise at each temp (bad idea generally).
-//lattice.initialise_lattice("FERRO");
-//equilibrate
-lattice.Equilibrate(equilStepsPerSite,T);
-//output equilibrated lattice.
-std::string equilFile="Lattice_equil_" + std::to_string(equilStepsPerSite)+"_stepsPerSite_"+std::to_string(T)+"K.dat";
-lattice.output_lattice(equilFile);
-//calc estimators
-lattice.Run(sampleFreq, ensemble_size,T);
-
-std::cout << "T="<<T<<"K:\n"
-<< "E_av="<<lattice.E_av << "\n"
-<< "P_av="<<lattice.P_av << "\n"
-<< "OP = "<<lattice.orderParam_av<<"\n"
-<< "Accepted="<<lattice.Accepted<<" , Rejected="<<lattice.Rejected<< "\n\n";
-
-mainOutput << T << " " << lattice.E_av << " " << lattice.Esqrd_av 
-<< " " <<lattice.P_av<< " " << lattice.Psqrd_av << " " << lattice.Cv 
-<< " " << lattice.Chi<< " " <<lattice.orderParam_av<<" "<<lattice.tau_px<< " " <<lattice.tau_py
-<< " " <<lattice.tau_pz<< " "<<lattice.tau_E<< " " <<lattice.tau_orderParam<<"\n";
-
+    double T=(i*dT)+T_min;
+    
+    /******************* EQUILIBRATE *********************/
+    lattice.Equilibrate(equilStepsPerSite,T);
+    
+    /************* OUTPUT EQUIL LATTICE ******************/
+    std::string equilFile="Lattice_equil_"+std::to_string(equilStepsPerSite)+"_stepsPerSite_"+std::to_string(T)+"K.dat";
+    lattice.output_lattice(equilFile);
+    
+    /******************* PERFORM RUN *********************/
+    lattice.Run(sampleFreq, ensemble_size,T);
+    
+    /*****************************************************/
+    /************ OUTPUT TO TERMINAL *********************/
+    /*****************************************************/
+    std::cout << "T="<<T<<"K:\n"
+    << "E_av="<<lattice.E_av << "\n"
+    << "P_av="<<lattice.P_av << "\n"
+    << "OP = "<<lattice.orderParam_av<<"\n"
+    << "Accepted="<<lattice.Accepted<<" , Rejected="<<lattice.Rejected<< "\n\n";
+    /*****************************************************/
+    /************* OUTPUT TO FILE ************************/
+    /*****************************************************/
+    mainOutput << T << " " << lattice.E_av << " " << lattice.Esqrd_av 
+    << " " <<lattice.P_av<< " " << lattice.Psqrd_av << " " << lattice.Cv 
+    << " " << lattice.Chi<< " " <<lattice.orderParam_av<<" "<<lattice.tau_px<< " " <<lattice.tau_py
+    << " " <<lattice.tau_pz<< " "<<lattice.tau_E<< " " <<lattice.tau_orderParam<<"\n";
 }
+/********************************************************/
+/****************** END OF TEMP LOOP ********************/
+/********************************************************/
 mainOutput.close();
 return 0;
 }

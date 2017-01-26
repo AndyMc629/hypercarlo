@@ -100,16 +100,18 @@ void Lattice::initialise_lattice(std::string s) {
 }
 //Lattice member func, output lattice to file "string"
 void Lattice::output_lattice(std::string datafile) {
-std::ofstream output;
-output.open(datafile.c_str());
-for(int i=0;i<Nx;i++) {
+//will output data like x,y,z,px,py,px,E_site,V_site 
+    std::ofstream output;
+    output.open(datafile.c_str());
+    for(int i=0;i<Nx;i++) {
         for(int j=0;j<Ny;j++) {
                 output << i << " " << j << " " << "0 " << get_dipole(i,j).x << " "
                 << get_dipole(i,j).y << " "
-                << get_dipole(i,j).z << "\n";
+                << get_dipole(i,j).z << " " << site_Hamiltonian(i,j) 
+                << " " << site_Potential(i,j) << "\n";
                 }
             }
-output.close();
+    output.close();
 }
 
 //Lattice member func, equilibrate for stepsPerSite MCSweeps.
@@ -491,6 +493,26 @@ double Lattice::site_Hamiltonian(int x, int y) {
         }      
     } //DIPOLE-DIPOLE ENERGY
     return H;
+}
+
+double Lattice::site_Potential(int x, int y){
+    double Vxy=0.0;
+    dipole pj;
+    if (model.compare("DIPOLE-DIPOLE")==0) {
+        double rij=0.0;
+        for (int i=-r_cut;i<=r_cut;i++) {
+            for(int j=-r_cut;j<=r_cut;j++) {
+                if(i==0 && j==0) continue; //or we'll get Nan's.
+                //went outside of interaction range.
+                if((i*i+j*j)>r_cut*r_cut) continue; 
+                pj=get_dipole(x+i,y+j);
+                rij=sqrt(i*i+j*j);
+                //dot product manually to save casting (i,j) as vector
+                Vxy += (pj.x*i+pj.y*j)/(rij*rij);
+            }
+        }      
+    } //DIPOLE-DIPOLE POTENTIAL
+    return Vxy;
 }
 double Lattice::total_Energy(){
 double E=0.0;
