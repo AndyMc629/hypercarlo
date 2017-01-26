@@ -1,8 +1,8 @@
-H  H Y   Y PPPP EEEE RRRR CCCC AAAAA RRRR L     OOOOO
-H  H  Y Y  P  P E    R  R C    A   A R  R L     O   O
-HHHH   Y   PPPP EEEE RRRR C    AAAAA RRRR L     O   O
-H  H   Y   P    E    R R  C    A   A R R  L     O   O
-H  H   Y   P    EEEE R  R CCCC A   A R  R LLLLL OOOOO  
+H  H Y   Y PPPP EEEE RRRR CCCC AAAAA RRRR L     OOOOO  
+H  H  Y Y  P  P E    R  R C    A   A R  R L     O   O  
+HHHH   Y   PPPP EEEE RRRR C    AAAAA RRRR L     O   O  
+H  H   Y   P    E    R R  C    A   A R R  L     O   O  
+H  H   Y   P    EEEE R  R CCCC A   A R  R LLLLL OOOOO    
 
 # HyPerCarlo 
 
@@ -11,12 +11,12 @@ for researching Hybrid Perovskites.
 
 Such models include (in 2D and 3D versions of the code):
 
-1) Ising model
-2) Various n-Potts models with Ising like interactions
-3) Random field Ising model
-4) Random field n-Potts models
-5) Dipolar lattice model (with n-Potts constrained orientations)
-6) Dipolar lattice model (with random fields).
+1) Ising model  
+2) Various n-Potts models with Ising like interactions  
+3) Random field Ising model  
+4) Random field n-Potts models  
+5) Dipolar lattice model (with n-Potts constrained orientations)  
+6) Dipolar lattice model (with random fields).  
 
 # Background
 
