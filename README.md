@@ -1,10 +1,8 @@
-/********************************************************
-* H  H Y   Y PPPP EEEE RRRR CCCC AAAAA RRRR L     OOOOO
-* H  H  Y Y  P  P E    R  R C    A   A R  R L     O   O
-* HHHH   Y   PPPP EEEE RRRR C    AAAAA RRRR L     O   O
-* H  H   Y   P    E    R R  C    A   A R R  L     O   O
-* H  H   Y   P    EEEE R  R CCCC A   A R  R LLLLL OOOOO  
-********************************************************/
+H  H Y   Y PPPP EEEE RRRR CCCC AAAAA RRRR L     OOOOO
+H  H  Y Y  P  P E    R  R C    A   A R  R L     O   O
+HHHH   Y   PPPP EEEE RRRR C    AAAAA RRRR L     O   O
+H  H   Y   P    E    R R  C    A   A R R  L     O   O
+H  H   Y   P    EEEE R  R CCCC A   A R  R LLLLL OOOOO  
 
 # HyPerCarlo 
 
@@ -20,7 +18,6 @@ Such models include (in 2D and 3D versions of the code):
 5) Dipolar lattice model (with n-Potts constrained orientations)
 6) Dipolar lattice model (with random fields).
 
-/*-------------------------------------------------------*/
 # Background
 
 The initial work on this code was inspired by Jarvist Frost's StarryNight code, published in:
@@ -48,5 +45,4 @@ Andrew P. McMahon,
 Theory and Simulation of Materials, 
 Imperial College London.
 
-/*-------------------------------------------------------- */
 Code began 25/1/2016.
