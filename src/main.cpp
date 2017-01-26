@@ -1,126 +1,94 @@
-/* Monte Carlo lattice model simulator, this will be generic and 3D. All that will need changed/updated in future will be Hamiltonians!
-
-Author: Andrew P. McMahon, Imperial College London.
-Began: 25/1/2016
-
-I imagine the workflow of the program:
-
-Initialise a lattice 
-|--> Choose model Hamiltonian? Should I create a "Model" class containing the Hamiltonian and Monte Carlo steps 
-     or do I just make this a method in the lattice class?
-V
-Run equilibration on lattice --> 
-|
-V
-Run simulation on lattice, gather statistics --> Calculate averages --> Output averages.
-
+/* Monte Carlo lattice model simulator, containing several model Hamiltonians.
+ * 
+ * As of 26/1/2017 these are:
+ * 
+ * 1) Basic Ising model.
+ * 2) Dipolar model with n=6 orientations allowed.
+ * 
+ * in 2D and 3D. Main object is the Lattice class, which contains
+ * all of the relevant methods needed for a Monte Carlo run (initialisation,
+ * energy etc).
+ * 
+ * Input parameters are read from 'input.cfg' file.
+ * Outputs summary statistics in 'Summary.dat' file.
+ * 
+ * Author: Andrew P. McMahon, Imperial College London.
+ * Began: 25/1/2016
 
 */
 
 #include<cstdlib>
 #include<iostream>
 #include<fstream>
-#include "Lattice.h"
+#include<string>
+#include<sstream>
 #include<vector>
 #include<random>
-//#include<chrono>
 #include<ctime> //output times in log files
-//#include <boost/property_tree/ptree.hpp> //should do config but not working on mac, need lib linker command?
-//#include <boost/property_tree/ini_parser.hpp>
-//using namespace std;
+#include "Lattice.h"
+#include "inputParser.h"
 
 int main() {
+    /********************************************************/ 
+    /***************** READ IN RUN PARAMETERS ***************/ 
+    /********************************************************/ 
+    // current date/time based on current system
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
+    std::string datetime=std::to_string(ltm->tm_mday)+"_"+std::to_string(1+ltm->tm_mon)+"_"+std::to_string(1900+ltm->tm_year)+"_"+std::to_string(ltm->tm_hour)+std::to_string(ltm->tm_min);
+    //std::cout<<"t = "<<datetime<<"\n";
+    std::ofstream runSummary;
+    runSummary.open("Summary_"+datetime+".dat");
 
- /********************************************************/ 
- /*************** SET UP THE RUN PARAMETERS **************/
- /**** will do this from a config file eventually. *******/ 
- /********************************************************/    
-//Set size of lattice
-int Nx=10,Ny=10;//Nx=40,Ny=40;
+    Config config;
+    loadConfig(config);
+    runSummary<<"#------------------------------------------------------\n"
+        <<"#Config file loaded. Selected parameters:\n#\n" 
+        <<"#Lattice = "<<config.nx<<"_"<<config.ny<<"\n"
+        <<"#Model = "<<config.model<<" with n = "<<config.degOfFreedom<<"\n#\n"
+        <<"#RunType = ANNEALING\n"
+        <<"#r_cut = "<<config.rCutOff<<"\n"
+        <<"#T_min, T_max, dT = "<<config.T_min<<", "<<config.T_max<<", "<<config.dT<<"\n#\n"
+        <<"#equilSteps = "<<config.equilSteps<<"\n#ensembleSize = "<<config.ensembleSize
+        <<"\n#------------------------------------------------------\n"
+        << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv Chi OP tau(px) tau(py) tau(pz) tau(E) tau(OP)\n"; 
 
-//Initialise a lattice object and choose model.
-std::string Model="DIPOLE-DIPOLE";//"DIPOLE-DIPOLE";
-//Lattice lattice=Lattice(Nx,Ny, "ISING");
-Lattice lattice=Lattice(Nx,Ny, Model);
+    //INTIALISE LATTICE
+    Lattice lattice=Lattice(config.nx,config.ny,config.model);
+    lattice.degOfFreedom=config.degOfFreedom;
+    lattice.r_cut=config.rCutOff;
+    lattice.initialise_lattice(config.initialLattice);
+    lattice.output_lattice("InitialState_"+datetime+".dat");
 
-//Initialise the lattice to FERRO or PARA_ISING for Ising model.
-lattice.initialise_lattice("COL_ANTI_FERRO");
-//output initial lattice.
-lattice.output_lattice("InitialState.dat");
-
-//equilibrate lattice at temp T.
-double T_min=0.05;//0.2;//1000; //K 2D Ising T_c ~ 2.2 
-double T_max=1.05;//5.0//2000; //K 2D dipole T_c ~ 0.5
-double dT=0.05; //K
-int equilStepsPerSite=2000;//10000;//100000;//10000;
-int ensemble_size=18000;//180000;//100;//18000; //180000;//1000000;//18000
-int sampleFreq=1; //sample observable ever sampleFreq steps.
-/********************************************************/ 
-/********************************************************/ 
-/********************************************************/
-
-/********************************************************/
-/******************SET UP OUTPUT FILE********************/
-/********************************************************/
-std::ofstream mainOutput;
-mainOutput.open("Output.dat");
-
-// current date/time based on current system
-time_t now = time(0);
-// convert now to string form
-char* dt = ctime(&now);
-
-mainOutput << "# Run began:" << dt << "\n" 
-           << "# Key run parameters:\n"
-           << "# Nx Ny = "<<Nx << " "<<Ny<< "\n"
-           << "# model = "<<Model<<"\n"
-           << "# (T_min,T_max,dT) = ("<<T_min<<", "<<T_max<<", "<<dT<<")\n"
-           << "# equilStepsPerSite = " << equilStepsPerSite << "\n"
-           << "# sampleFreq = "<<sampleFreq<<"\n"
-           << "# r_cut (dipole-models) = " << lattice.r_cut <<"\n"
-           << "# ensemble_size = " << ensemble_size << "\n#\n";
-mainOutput << "#T(K) E_av Esqrd_av P_av Psqrd_av Cv Chi OP tau(px) tau(py) tau(pz) tau(E) tau(OP)\n"; 
-/********************************************************/ 
-/********************************************************/ 
-/********************************************************/
-
-/********************************************************/
-/********************** TEMP LOOP ***********************/
-/********************************************************/
-int T_counter=int((T_max-T_min)/dT);
-//for (int T=T_min;T<=T_max;T=T+dT) {
-for (int i=0; i<=T_counter;i++) {
-    double T=(i*dT)+T_min;
     
-    /******************* EQUILIBRATE *********************/
-    lattice.Equilibrate(equilStepsPerSite,T);
-    
-    /************* OUTPUT EQUIL LATTICE ******************/
-    std::string equilFile="Lattice_equil_"+std::to_string(equilStepsPerSite)+"_stepsPerSite_"+std::to_string(T)+"K.dat";
-    lattice.output_lattice(equilFile);
-    
-    /******************* PERFORM RUN *********************/
-    lattice.Run(sampleFreq, ensemble_size,T);
-    
-    /*****************************************************/
-    /************ OUTPUT TO TERMINAL *********************/
-    /*****************************************************/
-    std::cout << "T="<<T<<"K:\n"
-    << "E_av="<<lattice.E_av << "\n"
-    << "P_av="<<lattice.P_av << "\n"
-    << "OP = "<<lattice.orderParam_av<<"\n"
-    << "Accepted="<<lattice.Accepted<<" , Rejected="<<lattice.Rejected<< "\n\n";
-    /*****************************************************/
-    /************* OUTPUT TO FILE ************************/
-    /*****************************************************/
-    mainOutput << T << " " << lattice.E_av << " " << lattice.Esqrd_av 
-    << " " <<lattice.P_av<< " " << lattice.Psqrd_av << " " << lattice.Cv 
-    << " " << lattice.Chi<< " " <<lattice.orderParam_av<<" "<<lattice.tau_px<< " " <<lattice.tau_py
-    << " " <<lattice.tau_pz<< " "<<lattice.tau_E<< " " <<lattice.tau_orderParam<<"\n";
-}
-/********************************************************/
-/****************** END OF TEMP LOOP ********************/
-/********************************************************/
-mainOutput.close();
-return 0;
+    /********************************************************/
+    /********************** TEMP LOOP ***********************/
+    /********************************************************/
+    int T_counter=int((config.T_max-config.T_min)/config.dT);
+    for (int i=0; i<=T_counter;i++) {
+        //CURRENT TEMP
+        double T=(i*config.dT)+config.T_min;
+        //EQUILIBRATE
+        lattice.Equilibrate(config.equilSteps,T);
+        //OUTPUT EQUIL LATTICE
+        std::string equilFile="Lattice_equil_"+std::to_string(config.equilSteps)+"_stepsPerSite_"+std::to_string(T)+"K.dat";
+        lattice.output_lattice(equilFile);
+        //PERFORM RUN
+        lattice.Run(config.sampleFreq, config.ensembleSize,T);
+   
+        //OUTPUT TO TERMINAL
+        std::cout << "T="<<T<<"K:\n"
+        << "E_av="<<lattice.E_av << "\n"
+        << "P_av="<<lattice.P_av << "\n"
+        << "OP = "<<lattice.orderParam_av<<"\n"
+        << "Accepted="<<lattice.Accepted<<" , Rejected="<<lattice.Rejected<< "\n\n";    
+        //OUTPUT TO FILE
+        runSummary << T << " " << lattice.E_av << " " << lattice.Esqrd_av 
+        << " " <<lattice.P_av<< " " << lattice.Psqrd_av << " " << lattice.Cv 
+        << " " << lattice.Chi<< " " <<lattice.orderParam_av<<" "<<lattice.tau_px<< " " <<lattice.tau_py
+        << " " <<lattice.tau_pz<< " "<<lattice.tau_E<< " " <<lattice.tau_orderParam<<"\n";
+    }//END OF TEMP LOOP
+    //tidy up
+    runSummary.close();
+    return 0;
 }

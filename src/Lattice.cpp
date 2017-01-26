@@ -50,7 +50,7 @@ void Lattice::initialise_lattice(std::string s) {
 			}	
 		}
 	}
-        else if(s.compare("COL_ANTI_FERRO")) {
+        else if(s.compare("COL_ANTI_FERRO")==0) {
           std::cout << "COL ANTI FERRO CHOSEN" << std::endl;
           for(int i=0;i<Nx;i++) {
                 for(int j=0;j<Ny;j++) {
@@ -432,15 +432,21 @@ Lattice::dipole Lattice::move(int x,int y) { //move dipole at
         p.y=lattice[x+y*Ny].y; //Ising so only z component.
         p.z= -lattice[x+y*Nx].z; //Ising so can only flip.
     }
-    if(model.compare("DIPOLE-DIPOLE")==0){
+    if(model.compare("DIPOLE-DIPOLE")==0){// && degOfFreedom==6){
         //first just move in any direction, pi flips etc allowed.
         //list of triplets of the directions. Perhaps define externally when
         //I allow more directions.
-        int dirs[18] = {-1,0,0, 1,0,0, 0,-1,0, 0,1,0, 0,0,1, 0,0,-1};
-        int dir=int(randomNumber(0,6));
-        p.x=dirs[dir*3]; //6 directions, each with x coordinates.
-        p.y=dirs[dir*3+1];  
-        p.z=dirs[dir*3+2]; 
+        //int dirs[18] = {-1,0,0, 1,0,0, 0,-1,0, 0,1,0, 0,0,1, 0,0,-1};
+    //theta, phi possibilities
+    double dirs[12]={0,0, PI,0, 
+                    0.5*PI,0, 0.5*PI,0.5*PI, 0.5*PI,PI, 0.5*PI,1.5*PI};
+    
+        int dir=int(randomNumber(0,6)); //=faces of cube.
+        double theta=dirs[dir*2];
+        double phi=dirs[dir*2+1];
+        p.x=sin(theta)*cos(phi);//dirs[dir*3]; //6 directions, each with x coordinates.
+        p.y=sin(theta)*sin(phi);//dirs[dir*3+1];  
+        p.z=cos(theta);//dirs[dir*3+2]; 
     }
     return p;
 }

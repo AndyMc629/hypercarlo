@@ -74,6 +74,7 @@ public:
     * would rather it private. Will make a function called "run_summarise()" 
     * that outputs the relevant info. */
     int r_cut=2; 
+    int degOfFreedom; //degrees of freedom for dipole models
     /*************************************************************/
 private:        
     //sizes of crystal
