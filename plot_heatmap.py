@@ -16,14 +16,18 @@ filename=sys.argv[-1]
 data=np.genfromtxt(filename, delimiter=' ')
 X_dat=data[:,0]
 Y_dat=data[:,1]
+px_dat=data[:,3]
+py_dat=data[:,4]
 E_dat=data[:,6]
 V_dat=data[:,7]
 
 # Convert from pandas dataframes to numpy arrays
-X, Y, E, V, = np.array([]), np.array([]), np.array([]), np.array([])
+X, Y, px, py, E, V, = np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
 for i in range(len(X_dat)):
         X = np.append(X,X_dat[i])
         Y = np.append(Y,Y_dat[i])
+        px = np.append(px,px_dat[i])
+        py = np.append(py,py_dat[i])
         E = np.append(E,E_dat[i])
         V = np.append(V,V_dat[i])
 
@@ -48,3 +52,7 @@ plt.savefig("Vheat.pdf")
 plt.colorbar()
 plt.show()
 plt.close()
+
+plt.figure(3)
+plt.quiver(X,Y,px,py, scale=2, units='xy')
+plt.show()
