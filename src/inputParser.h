@@ -23,6 +23,7 @@ struct Config{
     std::string model; 
     int degOfFreedom; //only applies to dipolar models for now
     int rCutOff;
+    std::string runType;
     double T_min; double T_max; double dT;
     int equilSteps; int ensembleSize;
     int sampleFreq;

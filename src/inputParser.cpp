@@ -39,6 +39,8 @@ void loadConfig(Config& config) {
             sin >> config.degOfFreedom;
         else if (line.find("rCutOff") != -1)
             sin >> config.rCutOff;
+        else if (line.find("runType") != -1)
+            sin >> config.runType;
         
     }
 }
