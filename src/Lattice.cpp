@@ -54,7 +54,7 @@ void Lattice::initialise_lattice(std::string s) {
           std::cout << "COL ANTI FERRO CHOSEN" << std::endl;
           for(int i=0;i<Nx;i++) {
                 for(int j=0;j<Ny;j++) {
-                  lattice[i+j*Nx].x = std::pow(-1,i); //causes nice striping.
+                  lattice[i+j*Nx].x = std::pow(-1,j); //causes nice striping.
                   lattice[i+j*Nx].y = 0.0;
                   lattice[i+j*Nx].z = 0.0; //ensure norm=1.
               }

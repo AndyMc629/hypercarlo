@@ -16,7 +16,7 @@ params = {'font.size':20,
           
 plt.rcParams.update(params)
 
-path = 'data/Ising/'
+path = 'data/DipoleDipole/'
 runData = dict()
 for infile in glob.glob( os.path.join(path, 'run*/Output.dat') ):
     print "current file: " + infile
