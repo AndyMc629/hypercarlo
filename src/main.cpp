@@ -27,6 +27,7 @@
 #include<ctime> //output times in log files
 #include "Lattice.h"
 #include "inputParser.h"
+#include "ewald.h"
 
 int main() {
     /********************************************************/ 
@@ -62,6 +63,7 @@ int main() {
     lattice.initialise_lattice(config.initialLattice);
     lattice.output_lattice("InitialState_"+datetime+".dat");
     
+    int test = RealandReciprocalSpace(lattice);
 
     if(config.runType.compare("ANNEAL")==0) {
         std::cout << "Simulation mode: "<<config.runType<<"\n";
