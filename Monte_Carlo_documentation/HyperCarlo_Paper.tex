@@ -174,8 +174,12 @@ The basic outline of how the program should be used in order to calculate releva
 This section is to keep me right as I progress with development. See table~\ref{Tab:timing} for some example timing information.
 \begin{table*}
 \begin{tabular}{| c | c | c | c | c | c | c|} \hline
-Date & $(T_{min}, T_{max}, \Delta T)$ & $(E_{min}, E_{max},\Delta E)$ & sampleDistance (MCS) & nSamples & equilStepsPerSite (MCS) &Time (mins) \\ \hline
-13/1/2017 & (1000,2000,50) K & N/A & 150 & 1000 & 10000 & 170 for 70\% \\ \hline
+Date & $(T_{min}, T_{max}, \Delta T)$ & $(E_{min}, E_{max},\Delta E)$-field & sampleDistance (MCS) & nSamples & equilStepsPerSite (MCS) &Time (mins) \\ \hline
+13/1/2017 & (1000,2000,50) K & N/A & 150 & 1000 & 10000 & 170 for 70\% of sim \\ \hline
+15/1/2017 & (1000,2000,50) K & N/A  & 1000 & 10000 & 10000 & 605 for $<5$\% of sim \\ \hline
+15/1/2017 & (1000,2000,50) K & N/A & 500 & 1000 & 10000 & 460 mins for 60\%\\\hline
+\hline
+16/1/2017 & (0.2,5.0,0.1) & N/A & 1 & $10^6$ & 2000 &  52m 27s \\ \hline
 \label{Tab:timing}
 \end{tabular}
 \end{table*}
