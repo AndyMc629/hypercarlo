@@ -1,0 +1,8 @@
+# LATEX FILES #
+###############
+*.pdf
+*.aux
+*.log
+*.ps
+*.gz
+

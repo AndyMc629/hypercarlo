@@ -4,7 +4,14 @@
     <df root="." name="0">
       <df name="src">
         <in>Lattice.cpp</in>
+        <in>ewald.cpp</in>
+        <in>ewald.h</in>
+        <in>inputParser.cpp</in>
+        <in>inputParser.h</in>
         <in>main.cpp</in>
+        <in>mainFuncs.cpp</in>
+        <in>mathsFuncs.cpp</in>
+        <in>mathsFuncs.h</in>
       </df>
     </df>
     <logicalFolder name="ExternalFiles"
@@ -53,9 +60,23 @@
         <ccTool flags="0">
         </ccTool>
       </item>
+      <item path="src/ewald.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ewald.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/inputParser.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/inputParser.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="src/main.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
         </ccTool>
+      </item>
+      <item path="src/mainFuncs.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/mathsFuncs.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/mathsFuncs.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>

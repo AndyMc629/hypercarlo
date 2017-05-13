@@ -3,13 +3,23 @@
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="." name="0">
       <df name="data">
-        <df name="Nx_10_Ny_10_Nz_10">
+        <df name="Old">
+          <df name="Nx_10_Ny_10_Nz_10">
+          </df>
+          <df name="Nx_15_Ny_15_Nx_15">
+          </df>
+          <df name="Nx_40_Ny_40_11_1_2017">
+          </df>
+          <df name="Nx_50_Ny_50_Nz_2">
+          </df>
         </df>
-        <df name="Nx_15_Ny_15_Nx_15">
+        <df name="run_20_01_2017_1034">
         </df>
-        <df name="Nx_40_Ny_40_11_1_2017">
+        <df name="run_20_01_2017_1243">
         </df>
-        <df name="Nx_50_Ny_50_Nz_2">
+        <df name="run_24_01_2017_2045">
+        </df>
+        <df name="run_24_01_2017_2119">
         </df>
       </df>
       <df name="Monte_Carlo_documentation">
@@ -18,7 +28,14 @@
         <in>Constants.h</in>
         <in>Lattice.cpp</in>
         <in>Lattice.h</in>
+        <in>ewald.cpp</in>
+        <in>ewald.h</in>
+        <in>inputParser.cpp</in>
+        <in>inputParser.h</in>
         <in>main.cpp</in>
+        <in>mainFuncs.cpp</in>
+        <in>mathsFuncs.cpp</in>
+        <in>mathsFuncs.h</in>
       </df>
     </df>
   </logicalFolder>
